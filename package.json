@@ -1,0 +1,27 @@
+{
+  "name": "rlimiter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ./tsconfig.json",
+    "lint:check": "eslint . --ext .ts",
+    "lint:write": "eslint . --ext .ts --fix",
+    "format:write": "prettier --cache --write \"**/*.{ts,json}\"",
+    "format:check": "prettier --cache --check \"**/*.{ts,json}\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.10.0",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.2.2",
+    "eslint": "^10.0.0",
+    "globals": "^17.3.0",
+    "jiti": "^2.6.1",
+    "prettier": "3.8.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0"
+  }
+}
