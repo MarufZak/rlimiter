@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "test": "vitest",
     "typecheck": "tsc --noEmit -p ./tsconfig.json",
     "lint:check": "eslint . --ext .ts",
     "lint:write": "eslint . --ext .ts --fix",
@@ -28,6 +29,7 @@
     "redis": "^5.10.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.54.0"
+    "typescript-eslint": "^8.54.0",
+    "vitest": "^4.0.18"
   }
 }
