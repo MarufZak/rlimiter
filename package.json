@@ -2,7 +2,7 @@
   "name": "rlimiter",
   "version": "1.0.0",
   "description": "Rate limiter for NodeJS",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "typecheck": "tsc --noEmit -p ./tsconfig.json",
@@ -11,7 +11,10 @@
     "format:write": "prettier --cache --write \"**/*.{ts,json}\"",
     "format:check": "prettier --cache --check \"**/*.{ts,json}\""
   },
-  "keywords": ["rate-limiter", "nodejs"],
+  "keywords": [
+    "rate-limiter",
+    "nodejs"
+  ],
   "author": "marufzak",
   "license": "MIT",
   "packageManager": "pnpm@10.10.0",
@@ -22,6 +25,7 @@
     "globals": "^17.3.0",
     "jiti": "^2.6.1",
     "prettier": "3.8.1",
+    "redis": "^5.10.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0"

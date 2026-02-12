@@ -1,46 +1,57 @@
-interface TocketBucketOpts {
+import type { RedisClientType } from 'redis';
+
+interface RateLimiterOpts {
   maxTokens: number;
-  refillRate: number;
+  refillSeconds: number;
+  redisClient: RedisClientType;
 }
 
-type MapType = Map<
-  string,
-  {
-    count: number;
-    lastTimestamp: number;
-  }
->;
-
-class TokenBucket {
+class RateLimiter {
   maxTokens = 0;
-  refillRate = 0;
-  map: MapType = new Map();
+  refillSeconds = 0;
+  redisClient: RedisClientType;
 
-  constructor({ maxTokens, refillRate }: TocketBucketOpts) {
+  constructor({ maxTokens, refillSeconds, redisClient }: RateLimiterOpts) {
     this.maxTokens = maxTokens;
-    this.refillRate = refillRate;
+    this.refillSeconds = refillSeconds;
+    this.redisClient = redisClient;
   }
 
-  consume(ip: string) {
-    const item = this.map.get(ip);
-    const currentTimestamp = new Date().getTime();
+  async check(key: string) {
+    const response = Boolean(
+      await this.redisClient.evalSha(
+        `
+          local countKey = KEYS[1]
 
-    if (!item) {
-      this.map.set(ip, {
-        count: 1,
-        lastTimestamp: currentTimestamp,
-      });
+          local maxTokens = tonumber(ARGV[1])
+          local refillSeconds = tonumber(ARGV[2])
 
-      return true;
-    }
+          local count = tonumber(redis.call("GET", countKey))
 
-    const { count, lastTimestamp } = item;
+          if not count then
+            count = maxTokens
+            redis.call("SETEX", countKey, refillSeconds, maxTokens)
+          end
 
-    this.map.set(ip, {
-      count: count + 1,
-      lastTimestamp: currentTimestamp,
-    });
+          count = count - 1
 
-    return count < this.maxTokens;
+          if count < 0 then
+            return false
+          end
+
+          redis.call("SET", countKey, count, "KEEPTTL")
+
+          return true
+        `,
+        {
+          keys: [key],
+          arguments: [this.maxTokens.toString(), this.refillSeconds.toString()],
+        }
+      )
+    );
+
+    return response;
   }
 }
+
+export default RateLimiter;
