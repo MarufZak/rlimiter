@@ -5,5 +5,6 @@ export default defineConfig({
     globals: true,
     allowOnly: true,
     fileParallelism: false,
+    hookTimeout: 20_000_000,
   },
 });

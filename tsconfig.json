@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
+    "module": "preserve",
+    "noEmit": true,
     "target": "esnext",
     "lib": ["esnext"],
     "types": ["node", "vitest/globals"],

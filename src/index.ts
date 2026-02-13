@@ -19,7 +19,7 @@ class RateLimiter {
 
   async check(key: string) {
     const response = Boolean(
-      await this.redisClient.evalSha(
+      await this.redisClient.eval(
         `
           local countKey = KEYS[1]
 
