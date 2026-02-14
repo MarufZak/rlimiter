@@ -7,9 +7,9 @@ interface RateLimiterOpts {
 }
 
 class RateLimiter {
-  maxTokens = 0;
-  refillSeconds = 0;
-  redisClient: RedisClientType;
+  private maxTokens = 0;
+  private refillSeconds = 0;
+  private redisClient: RedisClientType;
 
   constructor({ maxTokens, refillSeconds, redisClient }: RateLimiterOpts) {
     this.maxTokens = maxTokens;
