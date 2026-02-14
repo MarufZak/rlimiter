@@ -1,6 +1,6 @@
 {
   "name": "@marufzak/rlimiter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Rate limiter for NodeJS",
   "type": "module",
   "scripts": {
@@ -25,7 +25,6 @@
   ],
   "author": "marufzak",
   "license": "MIT",
-  "packageManager": "pnpm@10.10.0",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@testcontainers/redis": "^11.11.0",
@@ -43,5 +42,18 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",
     "vitest": "^4.0.18"
-  }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./adapters/koa": {
+      "types": "./dist/adapters/koa.d.ts",
+      "default": "./dist/adapters/koa.js"
+    }
+  },
+  "packageManager": "pnpm@10.10.0"
 }
