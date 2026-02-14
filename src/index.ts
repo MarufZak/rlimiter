@@ -1,6 +1,6 @@
 import type { RedisClientType } from 'redis';
 
-interface RateLimiterOpts {
+export interface RateLimiterOpts {
   maxTokens: number;
   refillSeconds: number;
   redisClient: RedisClientType;
