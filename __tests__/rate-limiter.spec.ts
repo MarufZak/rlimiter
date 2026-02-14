@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import RateLimiter from '../src';
 import { redisClient } from './hooks/redis';
 import { wait } from './utils';

@@ -1,6 +1,6 @@
-import type { RateLimiterOpts } from '..';
 import type { Context, Middleware } from 'koa';
-import RateLimiter from '..';
+import type { RateLimiterOpts } from '../index.js';
+import RateLimiter from '../index.js';
 
 export interface KoaRateLimiterMiddlewareOpts extends RateLimiterOpts {
   getKey: (ctx: Context) => string;

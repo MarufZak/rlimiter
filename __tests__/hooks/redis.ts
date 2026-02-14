@@ -1,5 +1,6 @@
 import type { RedisClientType } from 'redis';
 import { createRedisClient } from '../utils';
+import { beforeAll, beforeEach, afterAll } from 'vitest';
 
 let redisClient: RedisClientType;
 

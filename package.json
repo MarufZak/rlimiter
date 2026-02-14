@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "build": "tsc -p ./tsconfig.json",
     "test": "vitest",
     "typecheck": "tsc --noEmit -p ./tsconfig.json",
     "lint:check": "eslint . --ext .ts",

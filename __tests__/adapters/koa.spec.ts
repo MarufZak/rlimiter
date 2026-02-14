@@ -1,10 +1,19 @@
 import Koa from 'koa';
 import supertest from 'supertest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from 'vitest';
+import type { Server } from 'http';
+import type TestAgent from 'supertest/lib/agent';
 import { koaRateLimiterMiddleware } from '../../src/adapters/koa';
 import { redisClient } from '../hooks/redis';
-import type TestAgent from 'supertest/lib/agent';
-import type { Mock } from 'vitest';
-import type { Server } from 'http';
 
 let app: Server;
 let request: TestAgent;
