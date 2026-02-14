@@ -1,5 +1,6 @@
 import type { RedisClientType } from 'redis';
 
+// eslint-disable-next-line
 type TRedisClient = RedisClientType<any, any, any, any>;
 
 export interface RateLimiterOpts {
