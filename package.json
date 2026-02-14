@@ -1,5 +1,5 @@
 {
-  "name": "rlimiter",
+  "name": "@marufzak/rlimiter",
   "version": "1.0.0",
   "description": "Rate limiter for NodeJS",
   "type": "module",
