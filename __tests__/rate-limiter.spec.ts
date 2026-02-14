@@ -1,18 +1,6 @@
-import { type RedisClientType } from 'redis';
 import RateLimiter from '../src';
-import { createRedisClient, wait } from './utils';
-
-let redisClient: RedisClientType;
-
-beforeAll(async () => {
-  const { client } = await createRedisClient();
-
-  redisClient = client;
-});
-
-beforeEach(async () => {
-  await redisClient.flushAll();
-});
+import { redisClient } from './hooks/redis';
+import { wait } from './utils';
 
 describe('rate-limiter', () => {
   it('allows requests', async () => {

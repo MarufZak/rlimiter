@@ -4,6 +4,8 @@ import RateLimiter from '..';
 
 export interface KoaRateLimiterMiddlewareOpts extends RateLimiterOpts {
   getKey: (ctx: Context) => string;
+  onLimit?: (key: string) => void;
+  onProceed?: (key: string) => void;
 }
 
 export const koaRateLimiterMiddleware = ({
@@ -11,6 +13,8 @@ export const koaRateLimiterMiddleware = ({
   refillSeconds,
   redisClient,
   getKey,
+  onLimit,
+  onProceed,
 }: KoaRateLimiterMiddlewareOpts): Middleware => {
   const limiter = new RateLimiter({
     maxTokens,
@@ -24,9 +28,11 @@ export const koaRateLimiterMiddleware = ({
 
     if (!isAllowed) {
       ctx.status = 429;
+      onLimit?.(key);
       return;
     }
 
+    onProceed?.(key);
     await next();
   };
 };
