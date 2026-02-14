@@ -1,15 +1,17 @@
 import type { RedisClientType } from 'redis';
 
+type TRedisClient = RedisClientType<any, any, any, any>;
+
 export interface RateLimiterOpts {
   maxTokens: number;
   refillSeconds: number;
-  redisClient: RedisClientType;
+  redisClient: TRedisClient;
 }
 
 class RateLimiter {
   private maxTokens = 0;
   private refillSeconds = 0;
-  private redisClient: RedisClientType;
+  private redisClient: TRedisClient;
 
   constructor({ maxTokens, refillSeconds, redisClient }: RateLimiterOpts) {
     this.maxTokens = maxTokens;
