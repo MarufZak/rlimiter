@@ -5,17 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p ./tsconfig.json",
+    "build": "rm -rf dist && tsc -p ./tsconfig.json",
     "test": "vitest",
     "typecheck": "tsc --noEmit -p ./tsconfig.json",
     "lint:check": "eslint . --ext .ts",
     "lint:write": "eslint . --ext .ts --fix",
     "format:write": "prettier --cache --write \"**/*.{ts,json}\"",
-    "format:check": "prettier --cache --check \"**/*.{ts,json}\""
+    "format:check": "prettier --cache --check \"**/*.{ts,json}\"",
+    "prepublishOnly": "pnpm build"
   },
   "keywords": [
     "rate-limiter",
     "nodejs"
+  ],
+  "files": [
+    "dist",
+    "package.json",
+    "README.md"
   ],
   "author": "marufzak",
   "license": "MIT",
