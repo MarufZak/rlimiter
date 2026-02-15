@@ -1,6 +1,6 @@
 # @marufzak/rlimiter
 
-Redis-backed rate limiter for Node.js using the fixed window counter algorithm.
+Redis-backed rate limiter for Node.js with pluggable strategies.
 
 ## Installation
 
@@ -15,6 +15,7 @@ npm install @marufzak/rlimiter redis
 ```typescript
 import { createClient } from 'redis';
 import RateLimiter from '@marufzak/rlimiter';
+import { FixedWindowStrategy } from '@marufzak/rlimiter/strategies/fixed-window';
 
 const redisClient = createClient();
 await redisClient.connect();
@@ -23,6 +24,7 @@ const limiter = new RateLimiter({
   maxTokens: 10,
   refillSeconds: 60,
   redisClient,
+  strategy: new FixedWindowStrategy(),
 });
 
 const allowed = await limiter.check('user-123');
@@ -36,6 +38,7 @@ if (!allowed) {
 ```typescript
 import Koa from 'koa';
 import { koaRateLimiterMiddleware } from '@marufzak/rlimiter/adapters/koa';
+import { FixedWindowStrategy } from '@marufzak/rlimiter/strategies/fixed-window';
 
 const app = new Koa();
 
@@ -44,9 +47,39 @@ app.use(
     maxTokens: 100,
     refillSeconds: 60,
     redisClient,
+    strategy: new FixedWindowStrategy(),
     getKey: (ctx) => ctx.state.user?.id || ctx.ip,
   })
 );
+```
+
+### Error Handling
+
+By default, requests are rejected when Redis fails. You can customize this behavior:
+
+```typescript
+const limiter = new RateLimiter({
+  maxTokens: 10,
+  refillSeconds: 60,
+  redisClient,
+  strategy: new FixedWindowStrategy(),
+  onError: (error) => {
+    console.error('Rate limiter error:', error);
+    return 'allow'; // or 'reject'
+  },
+});
+```
+
+**Default behavior:** Requests are rejected on Redis errors to maintain security.
+
+**Fail open (allow requests):**
+```typescript
+onError: () => 'allow'
+```
+
+**Fail closed (reject requests):**
+```typescript
+onError: () => 'reject' // Default
 ```
 
 ## API
@@ -57,6 +90,8 @@ app.use(
 - `maxTokens` - Maximum number of requests allowed per window
 - `refillSeconds` - Window duration in seconds
 - `redisClient` - Redis client instance
+- `strategy` - Rate limiting strategy (e.g., `FixedWindowStrategy`)
+- `onError` - Optional error handler that returns `'allow'` or `'reject'` (default: rejects)
 
 **Methods:**
 - `check(key: string)` - Returns `true` if allowed, `false` if rate limited
@@ -64,12 +99,33 @@ app.use(
 ### koaRateLimiterMiddleware(options)
 
 **Options:**
-- All RateLimiter options plus:
+- `maxTokens` - Maximum number of requests allowed per window
+- `refillSeconds` - Window duration in seconds
+- `redisClient` - Redis client instance
+- `strategy` - Rate limiting strategy (e.g., `FixedWindowStrategy`)
+- `onError` - Optional error handler that returns `'allow'` or `'reject'`
 - `getKey` - Function to extract rate limit key from context
 - `onLimit` - Optional callback when rate limit exceeded
 - `onProceed` - Optional callback when request allowed
 
 Returns 429 status when rate limited.
+
+## Strategies
+
+### FixedWindowStrategy
+
+Fixed window counter algorithm. Allows N requests per time window.
+
+```typescript
+import { FixedWindowStrategy } from '@marufzak/rlimiter/strategies/fixed-window';
+
+const strategy = new FixedWindowStrategy();
+```
+
+**Behavior:**
+- Starts with maxTokens available
+- Each request decrements the counter
+- Counter resets completely after refillSeconds
 
 ## License
 

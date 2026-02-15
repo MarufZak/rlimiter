@@ -1,4 +1,4 @@
-import type { TStrategy, TStrategyOpts } from '../index.js';
+import type { TStrategy, TStrategyOpts } from './index.js';
 
 export class FixedWindowStrategy implements TStrategy {
   async check({ key, redisClient, maxTokens, refillSeconds }: TStrategyOpts) {
