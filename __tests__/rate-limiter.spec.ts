@@ -16,17 +16,21 @@ describe('rate-limiter', () => {
 
     const key = `user-1`;
 
-    const responses = (
-      await Promise.all([
-        limiter.check(key),
-        limiter.check(key),
-        limiter.check(key),
-        limiter.check(key),
-        limiter.check(key),
-      ])
-    ).map(response => response.isAllowed);
+    const responses = await Promise.all([
+      limiter.check(key),
+      limiter.check(key),
+      limiter.check(key),
+      limiter.check(key),
+      limiter.check(key),
+    ]);
 
-    expect(responses).toEqual([true, true, true, true, true]);
+    const boolean = responses.map(response => response.isAllowed);
+    const remaining = responses.map(response => response.remaining).toSorted();
+    const ttl = responses.map(response => response.ttl);
+
+    expect(boolean).toEqual([true, true, true, true, true]);
+    expect(remaining).toEqual([0, 1, 2, 3, 4]);
+    expect(ttl.every(item => item > 0)).toBe(true);
   });
 
   it('rejects requests', async () => {
@@ -41,10 +45,12 @@ describe('rate-limiter', () => {
     const key = `user-1`;
 
     const response1 = await limiter.check(key);
-    const response2 = await limiter.check(key);
-
     expect(response1.isAllowed).toBe(true);
+    expect(response1.remaining).toBe(0);
+
+    const response2 = await limiter.check(key);
     expect(response2.isAllowed).toBe(false);
+    expect(response2.remaining).toBe(0);
   });
 
   it('handles multiple keys correctly', async () => {
@@ -60,13 +66,16 @@ describe('rate-limiter', () => {
     });
 
     const response1 = await limiter.check(key1);
+    expect(response1.isAllowed).toBe(true);
+    expect(response1.remaining).toBe(0);
 
     const response2 = await limiter.check(key2);
-    const response3 = await limiter.check(key2);
-
-    expect(response1.isAllowed).toBe(true);
     expect(response2.isAllowed).toBe(true);
+    expect(response2.remaining).toBe(0);
+
+    const response3 = await limiter.check(key2);
     expect(response3.isAllowed).toBe(false);
+    expect(response3.remaining).toBe(0);
   });
 
   it('token refill works correctly', async () => {
@@ -81,16 +90,22 @@ describe('rate-limiter', () => {
     const key = `user-1`;
 
     const response1 = await limiter.check(key);
-    const response2 = await limiter.check(key);
     expect(response1.isAllowed).toBe(true);
+    expect(response1.remaining).toBe(0);
+
+    const response2 = await limiter.check(key);
     expect(response2.isAllowed).toBe(false);
+    expect(response2.remaining).toBe(0);
 
     await wait(1000);
 
     const response3 = await limiter.check(key);
-    const response4 = await limiter.check(key);
     expect(response3.isAllowed).toBe(true);
+    expect(response3.remaining).toBe(0);
+
+    const response4 = await limiter.check(key);
     expect(response4.isAllowed).toBe(false);
+    expect(response4.remaining).toBe(0);
   });
 
   it('partial token consuption', async () => {
@@ -104,11 +119,16 @@ describe('rate-limiter', () => {
 
     const key = `user-1`;
 
-    const responses = (
-      await Promise.all([limiter.check(key), limiter.check(key)])
-    ).map(response => response.isAllowed);
+    const responses = await Promise.all([
+      limiter.check(key),
+      limiter.check(key),
+    ]);
 
-    expect(responses).toEqual([true, true]);
+    const isAllowed1 = responses.map(response => response.isAllowed);
+    const remaining1 = responses.map(response => response.remaining).sort();
+
+    expect(isAllowed1).toEqual([true, true]);
+    expect(remaining1).toEqual([1, 2]);
 
     await wait(1000);
 
@@ -119,11 +139,11 @@ describe('rate-limiter', () => {
       limiter.check(key),
     ]);
 
-    const success = responses2.filter(response => response.isAllowed === true);
-    const fail = responses2.filter(response => response.isAllowed === false);
+    const isAllowed2 = responses2.map(response => response.isAllowed).sort();
+    const remaining2 = responses2.map(response => response.remaining).sort();
 
-    expect(success.length).toBe(3);
-    expect(fail.length).toBe(1);
+    expect(isAllowed2).toEqual([false, true, true, true]);
+    expect(remaining2).toEqual([0, 0, 1, 2]);
   });
 
   it('invokes onError when redis fails', async () => {

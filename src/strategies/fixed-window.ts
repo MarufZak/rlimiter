@@ -34,7 +34,7 @@ export class FixedWindowStrategy implements TStrategy {
           count = count - 1
 
           if count < 0 then
-            return {0, count, ttl}
+            return {0, count + 1, ttl}
           end
 
           redis.call("SET", countKey, count, "KEEPTTL")
