@@ -1,31 +1,24 @@
 import type { Context, Middleware } from 'koa';
-import type { RateLimiterOpts } from '../index.js';
-import RateLimiter from '../index.js';
+import type { TStrategy } from '../types.js';
 
-export interface KoaRateLimiterMiddlewareOpts extends RateLimiterOpts {
-  getKey: (ctx: Context) => string;
-  onLimit?: (key: string) => void;
-  onProceed?: (key: string) => void;
+export interface KoaRateLimiterMiddlewareOpts<T extends TStrategy> {
+  getKey: (ctx: Context) => Parameters<T['check']>[0];
+  onLimit?: (key: Parameters<T['check']>[0]) => void;
+  onProceed?: (key: Parameters<T['check']>[0]) => void;
+  strategy: T;
 }
 
-export const koaRateLimiterMiddleware = ({
-  redisClient,
+export const koaRateLimiterMiddleware = <T extends TStrategy>({
   getKey,
   onLimit,
   onProceed,
   strategy,
-  onError,
-}: KoaRateLimiterMiddlewareOpts): Middleware => {
-  const limiter = new RateLimiter({
-    redisClient,
-    strategy,
-    onError,
-  });
-
+}: KoaRateLimiterMiddlewareOpts<T>): Middleware => {
   return async (ctx, next) => {
     const key = getKey(ctx);
+
     const { isAllowed, remainingRequests, remainingTime } =
-      await limiter.check(key);
+      await strategy.check(key);
 
     if (!isAllowed) {
       ctx.status = 429;

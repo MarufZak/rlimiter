@@ -31,13 +31,13 @@ beforeAll(() => {
 
   koaApp.use(
     koaRateLimiterMiddleware({
-      getKey: ctx => ctx.get('x-key'),
-      redisClient,
+      getKey: ctx => ({ key: ctx.get('x-key') }),
       onLimit: limitCb,
       onProceed: proceedCb,
       strategy: new FixedWindowStrategy({
         maxTokens: 3,
         refillMs: 1000,
+        redisClient,
       }),
     })
   );
