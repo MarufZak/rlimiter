@@ -1,6 +1,9 @@
-import type { RateLimiterCommonOpts } from '../index.js';
+import type { TRedisClient } from '../index.js';
 
-export interface TStrategyOpts extends RateLimiterCommonOpts {
+export * from './fixed-window.js';
+
+export interface TStrategyOpts {
+  redisClient: TRedisClient;
   key: string;
 }
 

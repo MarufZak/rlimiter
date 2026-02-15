@@ -1,7 +1,21 @@
+import type { TRedisClient } from '../index.js';
 import type { TStrategy, TStrategyOpts } from './index.js';
 
+export interface FixedWindowStrategyOpts {
+  maxTokens: number;
+  refillSeconds: number;
+}
+
 export class FixedWindowStrategy implements TStrategy {
-  async check({ key, redisClient, maxTokens, refillSeconds }: TStrategyOpts) {
+  private maxTokens: FixedWindowStrategyOpts['maxTokens'];
+  private refillSeconds: FixedWindowStrategyOpts['refillSeconds'];
+
+  constructor({ maxTokens, refillSeconds }: FixedWindowStrategyOpts) {
+    this.maxTokens = maxTokens;
+    this.refillSeconds = refillSeconds;
+  }
+
+  async check({ redisClient, key }: TStrategyOpts) {
     const response = Boolean(
       await redisClient.eval(
         `
@@ -29,7 +43,7 @@ export class FixedWindowStrategy implements TStrategy {
         `,
         {
           keys: [key],
-          arguments: [maxTokens.toString(), refillSeconds.toString()],
+          arguments: [this.maxTokens.toString(), this.refillSeconds.toString()],
         }
       )
     );

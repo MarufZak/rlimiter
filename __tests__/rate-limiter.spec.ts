@@ -1,16 +1,17 @@
 import { describe, it, expect, vi } from 'vitest';
 import RateLimiter from '../src';
-import { FixedWindowStrategy } from '../src/strategies/fixed-window';
+import { FixedWindowStrategy } from '../src/strategies';
 import { redisClient } from './hooks/redis';
 import { wait } from './utils';
 
 describe('rate-limiter', () => {
   it('allows requests', async () => {
     const limiter = new RateLimiter({
-      maxTokens: 5,
-      refillSeconds: 1,
       redisClient,
-      strategy: new FixedWindowStrategy(),
+      strategy: new FixedWindowStrategy({
+        maxTokens: 5,
+        refillSeconds: 1,
+      }),
     });
 
     const key = `user-1`;
@@ -28,10 +29,11 @@ describe('rate-limiter', () => {
 
   it('rejects requests', async () => {
     const limiter = new RateLimiter({
-      maxTokens: 1,
-      refillSeconds: 1,
       redisClient,
-      strategy: new FixedWindowStrategy(),
+      strategy: new FixedWindowStrategy({
+        maxTokens: 1,
+        refillSeconds: 1,
+      }),
     });
 
     const key = `user-1`;
@@ -48,10 +50,11 @@ describe('rate-limiter', () => {
     const key2 = `user-2`;
 
     const limiter = new RateLimiter({
-      maxTokens: 1,
-      refillSeconds: 1,
       redisClient,
-      strategy: new FixedWindowStrategy(),
+      strategy: new FixedWindowStrategy({
+        maxTokens: 1,
+        refillSeconds: 1,
+      }),
     });
 
     const response1 = await limiter.check(key1);
@@ -66,10 +69,11 @@ describe('rate-limiter', () => {
 
   it('token refill works correctly', async () => {
     const limiter = new RateLimiter({
-      maxTokens: 1,
-      refillSeconds: 1,
       redisClient,
-      strategy: new FixedWindowStrategy(),
+      strategy: new FixedWindowStrategy({
+        maxTokens: 1,
+        refillSeconds: 1,
+      }),
     });
 
     const key = `user-1`;
@@ -89,10 +93,11 @@ describe('rate-limiter', () => {
 
   it('partial token consuption', async () => {
     const limiter = new RateLimiter({
-      maxTokens: 3,
-      refillSeconds: 1,
       redisClient,
-      strategy: new FixedWindowStrategy(),
+      strategy: new FixedWindowStrategy({
+        maxTokens: 3,
+        refillSeconds: 1,
+      }),
     });
 
     const key = `user-1`;
@@ -124,10 +129,11 @@ describe('rate-limiter', () => {
     const errorCb = vi.fn();
 
     const limiter = new RateLimiter({
-      maxTokens: 3,
-      refillSeconds: 1,
       redisClient,
-      strategy: new FixedWindowStrategy(),
+      strategy: new FixedWindowStrategy({
+        maxTokens: 3,
+        refillSeconds: 1,
+      }),
       onError: errorCb,
     });
 
