@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import RateLimiter from '../src';
 import { FixedWindowStrategy } from '../src/strategies/fixed-window';
 import { redisClient } from './hooks/redis';
@@ -118,5 +118,24 @@ describe('rate-limiter', () => {
 
     expect(success.length).toBe(3);
     expect(fail.length).toBe(1);
+  });
+
+  it('invokes onError when redis fails', async () => {
+    const errorCb = vi.fn();
+
+    const limiter = new RateLimiter({
+      maxTokens: 3,
+      refillSeconds: 1,
+      redisClient,
+      strategy: new FixedWindowStrategy(),
+      onError: errorCb,
+    });
+
+    const key = `user-1`;
+
+    await redisClient.close();
+    await limiter.check(key);
+
+    expect(errorCb).toHaveBeenCalledOnce();
   });
 });

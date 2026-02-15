@@ -15,7 +15,9 @@ beforeEach(async () => {
 });
 
 afterAll(() => {
-  redisClient.destroy();
+  try {
+    redisClient.destroy();
+  } catch {}
 });
 
 export { redisClient };

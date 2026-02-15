@@ -38,13 +38,15 @@ class RateLimiter {
 
   async check(key: string) {
     try {
-      return this.strategy.check({
+      return await this.strategy.check({
         key,
         maxTokens: this.maxTokens,
         redisClient: this.redisClient,
         refillSeconds: this.refillSeconds,
       });
     } catch (error: unknown) {
+      console.log({ error });
+
       const response = this.onError?.(error);
       return response === 'allow';
     }
