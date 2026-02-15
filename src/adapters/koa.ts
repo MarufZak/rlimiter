@@ -14,10 +14,12 @@ export const koaRateLimiterMiddleware = ({
   onLimit,
   onProceed,
   strategy,
+  onError,
 }: KoaRateLimiterMiddlewareOpts): Middleware => {
   const limiter = new RateLimiter({
     redisClient,
     strategy,
+    onError,
   });
 
   return async (ctx, next) => {

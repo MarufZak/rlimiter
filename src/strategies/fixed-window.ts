@@ -1,18 +1,17 @@
-import type { TRedisClient } from '../index.js';
 import type { TStrategy, TStrategyOpts } from './index.js';
 
 export interface FixedWindowStrategyOpts {
   maxTokens: number;
-  refillSeconds: number;
+  refillMs: number;
 }
 
 export class FixedWindowStrategy implements TStrategy {
   private maxTokens: FixedWindowStrategyOpts['maxTokens'];
-  private refillSeconds: FixedWindowStrategyOpts['refillSeconds'];
+  private refillMs: FixedWindowStrategyOpts['refillMs'];
 
-  constructor({ maxTokens, refillSeconds }: FixedWindowStrategyOpts) {
+  constructor({ maxTokens, refillMs }: FixedWindowStrategyOpts) {
     this.maxTokens = maxTokens;
-    this.refillSeconds = refillSeconds;
+    this.refillMs = refillMs;
   }
 
   async check({ redisClient, key }: TStrategyOpts) {
@@ -22,13 +21,13 @@ export class FixedWindowStrategy implements TStrategy {
           local countKey = KEYS[1]
 
           local maxTokens = tonumber(ARGV[1])
-          local refillSeconds = tonumber(ARGV[2])
+          local refillMs = tonumber(ARGV[2])
 
           local count = tonumber(redis.call("GET", countKey))
 
           if not count then
             count = maxTokens
-            redis.call("SETEX", countKey, refillSeconds, maxTokens)
+            redis.call("PSETEX", countKey, refillMs, maxTokens)
           end
 
           count = count - 1
@@ -43,7 +42,7 @@ export class FixedWindowStrategy implements TStrategy {
         `,
         {
           keys: [key],
-          arguments: [this.maxTokens.toString(), this.refillSeconds.toString()],
+          arguments: [this.maxTokens.toString(), this.refillMs.toString()],
         }
       )
     );

@@ -10,7 +10,7 @@ describe('rate-limiter', () => {
       redisClient,
       strategy: new FixedWindowStrategy({
         maxTokens: 5,
-        refillSeconds: 1,
+        refillMs: 1000,
       }),
     });
 
@@ -32,7 +32,7 @@ describe('rate-limiter', () => {
       redisClient,
       strategy: new FixedWindowStrategy({
         maxTokens: 1,
-        refillSeconds: 1,
+        refillMs: 1000,
       }),
     });
 
@@ -53,7 +53,7 @@ describe('rate-limiter', () => {
       redisClient,
       strategy: new FixedWindowStrategy({
         maxTokens: 1,
-        refillSeconds: 1,
+        refillMs: 1000,
       }),
     });
 
@@ -72,7 +72,7 @@ describe('rate-limiter', () => {
       redisClient,
       strategy: new FixedWindowStrategy({
         maxTokens: 1,
-        refillSeconds: 1,
+        refillMs: 1000,
       }),
     });
 
@@ -96,7 +96,7 @@ describe('rate-limiter', () => {
       redisClient,
       strategy: new FixedWindowStrategy({
         maxTokens: 3,
-        refillSeconds: 1,
+        refillMs: 1000,
       }),
     });
 
@@ -132,7 +132,7 @@ describe('rate-limiter', () => {
       redisClient,
       strategy: new FixedWindowStrategy({
         maxTokens: 3,
-        refillSeconds: 1,
+        refillMs: 1000,
       }),
       onError: errorCb,
     });

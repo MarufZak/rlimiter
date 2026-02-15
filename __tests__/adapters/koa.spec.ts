@@ -37,7 +37,7 @@ beforeAll(() => {
       onProceed: proceedCb,
       strategy: new FixedWindowStrategy({
         maxTokens: 3,
-        refillSeconds: 1,
+        refillMs: 1000,
       }),
     })
   );
