@@ -1,5 +1,5 @@
 import type { Context, Middleware } from 'koa';
-import type { TStrategy } from '../types.js';
+import type { TStrategy, TStrategyCheckOpts } from '../types.js';
 
 export interface KoaRateLimiterMiddlewareOpts<T extends TStrategy> {
   getKey: (ctx: Context) => Parameters<T['check']>[0];
@@ -18,7 +18,7 @@ export const koaRateLimiterMiddleware = <T extends TStrategy>({
     const key = getKey(ctx);
 
     const { isAllowed, remainingRequests, remainingTime } =
-      await strategy.check(key);
+      await strategy.check(key as TStrategyCheckOpts);
 
     if (!isAllowed) {
       ctx.status = 429;

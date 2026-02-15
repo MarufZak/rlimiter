@@ -1,5 +1,12 @@
 import type { RedisClientType } from 'redis';
-import type { FixedWindowStrategy } from './strategies/fixed-window.js';
+import type {
+  FixedWindowStrategy,
+  FixedWindowStrategyCheckOpts,
+} from './strategies/fixed-window.js';
+import type {
+  TokenBucketStrategy,
+  TokenBucketStrategyCheckOpts,
+} from './strategies/token-bucket.js';
 
 // eslint-disable-next-line
 export type TRedisClient = RedisClientType<any, any, any, any>;
@@ -15,4 +22,6 @@ export interface TStrategyCommonOpts {
   onError?: (error: unknown) => 'allow' | 'reject';
 }
 
-export type TStrategy = FixedWindowStrategy;
+export type TStrategy = FixedWindowStrategy | TokenBucketStrategy;
+export type TStrategyCheckOpts = FixedWindowStrategyCheckOpts &
+  TokenBucketStrategyCheckOpts;
