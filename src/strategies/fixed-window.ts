@@ -39,10 +39,9 @@ export class FixedWindowStrategy {
           local count = tonumber(redis.call("GET", countKey))
           local ttl = tonumber(redis.call("PTTL", countKey))
 
-          if not count or math.max(0, ttl) < 0 then
-            count = maxTokens
-            redis.call("PSETEX", countKey, refillMs, maxTokens)
-            ttl = refillMs
+          if not count or ttl < 0 then
+            redis.call("PSETEX", countKey, refillMs, maxTokens - 1)
+            return {1, maxTokens - 1, refillMs}
           end
 
           count = count - 1

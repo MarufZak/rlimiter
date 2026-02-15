@@ -54,26 +54,33 @@ export class TokenBucketStrategy {
           end
 
           if not lastAccessTime then
-            lastAccessTime = now
+            lastAccessTime = 0
           end
 
           local delta = now - lastAccessTime
           local refillTokens = currentTokens + (rate * delta)
           refillTokens = math.min(capacity, refillTokens)
 
-          local isAllowed = 0
           local newTokens = refillTokens - requested
+          local isAllowed = 0
+          local remainingTime = 0
 
           if newTokens >= 0 then
             isAllowed = 1
           end
 
-          if isAllowed then
+          if newTokens < requested then
+            remainingTime = math.ceil((requested - newTokens) / rate * 1000)
+          end
+
+          newTokens = math.max(0, newTokens)
+
+          if isAllowed == 1 then
             redis.call("SETEX", bucketKey, ttl, newTokens)
             redis.call("SETEX", timestampKey, ttl, now)
           end
 
-          return { isAllowed, newTokens, 1000 }
+          return { isAllowed, newTokens, remainingTime }
         `,
         {
           keys: [bucketKey, timestampKey],
@@ -91,8 +98,6 @@ export class TokenBucketStrategy {
       }
 
       const [isAllowed, remainingRequests, remainingTime] = response;
-
-      console.log({ isAllowed, remainingRequests, remainingTime });
 
       return {
         isAllowed: Boolean(isAllowed),
