@@ -21,7 +21,7 @@ class RateLimiter {
     this.onError = onError;
   }
 
-  async check(key: string) {
+  async check(key: string): ReturnType<TStrategy['check']> {
     try {
       return await this.strategy.check({
         key,
@@ -29,7 +29,11 @@ class RateLimiter {
       });
     } catch (error: unknown) {
       const response = this.onError?.(error);
-      return response === 'allow';
+      return {
+        isAllowed: response === 'allow',
+        remaining: 0,
+        ttl: 0,
+      };
     }
   }
 }

@@ -7,7 +7,6 @@
     "dev": "tsx watch src/index.ts",
     "build": "rm -rf dist && tsc -p ./tsconfig.json",
     "test": "vitest run",
-    "test:watch": "vitest",
     "typecheck": "tsc --noEmit -p ./tsconfig.json",
     "lint:check": "eslint . --ext .ts",
     "lint:write": "eslint . --ext .ts --fix",

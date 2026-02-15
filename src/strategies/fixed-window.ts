@@ -15,38 +15,48 @@ export class FixedWindowStrategy implements TStrategy {
   }
 
   async check({ redisClient, key }: TStrategyOpts) {
-    const response = Boolean(
-      await redisClient.eval(
-        `
+    const response = await redisClient.eval(
+      `
           local countKey = KEYS[1]
 
           local maxTokens = tonumber(ARGV[1])
           local refillMs = tonumber(ARGV[2])
 
           local count = tonumber(redis.call("GET", countKey))
+          local ttl = tonumber(redis.call("PTTL", countKey))
 
-          if not count then
+          if not count or math.max(0, ttl) < 0 then
             count = maxTokens
             redis.call("PSETEX", countKey, refillMs, maxTokens)
+            ttl = refillMs
           end
 
           count = count - 1
 
           if count < 0 then
-            return false
+            return {0, count, ttl}
           end
 
           redis.call("SET", countKey, count, "KEEPTTL")
 
-          return true
+          return {1, count, ttl}
         `,
-        {
-          keys: [key],
-          arguments: [this.maxTokens.toString(), this.refillMs.toString()],
-        }
-      )
+      {
+        keys: [key],
+        arguments: [this.maxTokens.toString(), this.refillMs.toString()],
+      }
     );
 
-    return response;
+    if (!Array.isArray(response)) {
+      throw new Error('Unexpected return value');
+    }
+
+    const [isAllowed, remaining, ttl] = response;
+
+    return {
+      isAllowed: Boolean(isAllowed),
+      remaining: Number(remaining),
+      ttl: Number(ttl),
+    };
   }
 }

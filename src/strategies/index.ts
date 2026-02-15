@@ -8,5 +8,9 @@ export interface TStrategyOpts {
 }
 
 export interface TStrategy {
-  check: (opts: TStrategyOpts) => Promise<boolean>;
+  check: (opts: TStrategyOpts) => Promise<{
+    isAllowed: boolean;
+    remaining: number;
+    ttl: number;
+  }>;
 }

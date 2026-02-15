@@ -24,7 +24,7 @@ export const koaRateLimiterMiddleware = ({
 
   return async (ctx, next) => {
     const key = getKey(ctx);
-    const isAllowed = await limiter.check(key);
+    const { isAllowed, remaining, ttl } = await limiter.check(key);
 
     if (!isAllowed) {
       ctx.status = 429;

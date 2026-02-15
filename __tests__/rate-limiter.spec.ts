@@ -16,13 +16,15 @@ describe('rate-limiter', () => {
 
     const key = `user-1`;
 
-    const responses = await Promise.all([
-      limiter.check(key),
-      limiter.check(key),
-      limiter.check(key),
-      limiter.check(key),
-      limiter.check(key),
-    ]);
+    const responses = (
+      await Promise.all([
+        limiter.check(key),
+        limiter.check(key),
+        limiter.check(key),
+        limiter.check(key),
+        limiter.check(key),
+      ])
+    ).map(response => response.isAllowed);
 
     expect(responses).toEqual([true, true, true, true, true]);
   });
@@ -41,8 +43,8 @@ describe('rate-limiter', () => {
     const response1 = await limiter.check(key);
     const response2 = await limiter.check(key);
 
-    expect(response1).toBe(true);
-    expect(response2).toBe(false);
+    expect(response1.isAllowed).toBe(true);
+    expect(response2.isAllowed).toBe(false);
   });
 
   it('handles multiple keys correctly', async () => {
@@ -62,9 +64,9 @@ describe('rate-limiter', () => {
     const response2 = await limiter.check(key2);
     const response3 = await limiter.check(key2);
 
-    expect(response1).toBe(true);
-    expect(response2).toBe(true);
-    expect(response3).toBe(false);
+    expect(response1.isAllowed).toBe(true);
+    expect(response2.isAllowed).toBe(true);
+    expect(response3.isAllowed).toBe(false);
   });
 
   it('token refill works correctly', async () => {
@@ -80,15 +82,15 @@ describe('rate-limiter', () => {
 
     const response1 = await limiter.check(key);
     const response2 = await limiter.check(key);
-    expect(response1).toBe(true);
-    expect(response2).toBe(false);
+    expect(response1.isAllowed).toBe(true);
+    expect(response2.isAllowed).toBe(false);
 
     await wait(1000);
 
     const response3 = await limiter.check(key);
     const response4 = await limiter.check(key);
-    expect(response3).toBe(true);
-    expect(response4).toBe(false);
+    expect(response3.isAllowed).toBe(true);
+    expect(response4.isAllowed).toBe(false);
   });
 
   it('partial token consuption', async () => {
@@ -102,10 +104,9 @@ describe('rate-limiter', () => {
 
     const key = `user-1`;
 
-    const responses = await Promise.all([
-      limiter.check(key),
-      limiter.check(key),
-    ]);
+    const responses = (
+      await Promise.all([limiter.check(key), limiter.check(key)])
+    ).map(response => response.isAllowed);
 
     expect(responses).toEqual([true, true]);
 
@@ -118,8 +119,8 @@ describe('rate-limiter', () => {
       limiter.check(key),
     ]);
 
-    const success = responses2.filter(response => response === true);
-    const fail = responses2.filter(response => response === false);
+    const success = responses2.filter(response => response.isAllowed === true);
+    const fail = responses2.filter(response => response.isAllowed === false);
 
     expect(success.length).toBe(3);
     expect(fail.length).toBe(1);
