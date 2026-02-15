@@ -51,12 +51,12 @@ export class FixedWindowStrategy implements TStrategy {
       throw new Error('Unexpected return value');
     }
 
-    const [isAllowed, remaining, ttl] = response;
+    const [isAllowed, remainingRequests, remainingTime] = response;
 
     return {
       isAllowed: Boolean(isAllowed),
-      remaining: Number(remaining),
-      ttl: Number(ttl),
+      remainingRequests: Number(remainingRequests),
+      remainingTime: Number(remainingTime),
     };
   }
 }

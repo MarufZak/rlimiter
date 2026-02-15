@@ -10,7 +10,7 @@ export interface TStrategyOpts {
 export interface TStrategy {
   check: (opts: TStrategyOpts) => Promise<{
     isAllowed: boolean;
-    remaining: number;
-    ttl: number;
+    remainingRequests: number;
+    remainingTime: number;
   }>;
 }

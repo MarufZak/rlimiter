@@ -25,8 +25,10 @@ describe('rate-limiter', () => {
     ]);
 
     const boolean = responses.map(response => response.isAllowed);
-    const remaining = responses.map(response => response.remaining).toSorted();
-    const ttl = responses.map(response => response.ttl);
+    const remaining = responses
+      .map(response => response.remainingRequests)
+      .toSorted();
+    const ttl = responses.map(response => response.remainingTime);
 
     expect(boolean).toEqual([true, true, true, true, true]);
     expect(remaining).toEqual([0, 1, 2, 3, 4]);
@@ -46,11 +48,11 @@ describe('rate-limiter', () => {
 
     const response1 = await limiter.check(key);
     expect(response1.isAllowed).toBe(true);
-    expect(response1.remaining).toBe(0);
+    expect(response1.remainingRequests).toBe(0);
 
     const response2 = await limiter.check(key);
     expect(response2.isAllowed).toBe(false);
-    expect(response2.remaining).toBe(0);
+    expect(response2.remainingRequests).toBe(0);
   });
 
   it('handles multiple keys correctly', async () => {
@@ -67,15 +69,15 @@ describe('rate-limiter', () => {
 
     const response1 = await limiter.check(key1);
     expect(response1.isAllowed).toBe(true);
-    expect(response1.remaining).toBe(0);
+    expect(response1.remainingRequests).toBe(0);
 
     const response2 = await limiter.check(key2);
     expect(response2.isAllowed).toBe(true);
-    expect(response2.remaining).toBe(0);
+    expect(response2.remainingRequests).toBe(0);
 
     const response3 = await limiter.check(key2);
     expect(response3.isAllowed).toBe(false);
-    expect(response3.remaining).toBe(0);
+    expect(response3.remainingRequests).toBe(0);
   });
 
   it('token refill works correctly', async () => {
@@ -91,21 +93,21 @@ describe('rate-limiter', () => {
 
     const response1 = await limiter.check(key);
     expect(response1.isAllowed).toBe(true);
-    expect(response1.remaining).toBe(0);
+    expect(response1.remainingRequests).toBe(0);
 
     const response2 = await limiter.check(key);
     expect(response2.isAllowed).toBe(false);
-    expect(response2.remaining).toBe(0);
+    expect(response2.remainingRequests).toBe(0);
 
     await wait(1000);
 
     const response3 = await limiter.check(key);
     expect(response3.isAllowed).toBe(true);
-    expect(response3.remaining).toBe(0);
+    expect(response3.remainingRequests).toBe(0);
 
     const response4 = await limiter.check(key);
     expect(response4.isAllowed).toBe(false);
-    expect(response4.remaining).toBe(0);
+    expect(response4.remainingRequests).toBe(0);
   });
 
   it('partial token consuption', async () => {
@@ -125,7 +127,9 @@ describe('rate-limiter', () => {
     ]);
 
     const isAllowed1 = responses.map(response => response.isAllowed);
-    const remaining1 = responses.map(response => response.remaining).sort();
+    const remaining1 = responses
+      .map(response => response.remainingRequests)
+      .sort();
 
     expect(isAllowed1).toEqual([true, true]);
     expect(remaining1).toEqual([1, 2]);
@@ -140,7 +144,9 @@ describe('rate-limiter', () => {
     ]);
 
     const isAllowed2 = responses2.map(response => response.isAllowed).sort();
-    const remaining2 = responses2.map(response => response.remaining).sort();
+    const remaining2 = responses2
+      .map(response => response.remainingRequests)
+      .sort();
 
     expect(isAllowed2).toEqual([false, true, true, true]);
     expect(remaining2).toEqual([0, 0, 1, 2]);

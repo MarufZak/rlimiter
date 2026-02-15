@@ -27,7 +27,7 @@ const limiter = new RateLimiter({
   strategy: new FixedWindowStrategy(),
 });
 
-const { isAllowed, remaining, ttl } = await limiter.check('user-123');
+const { isAllowed, remainingRequests, remainingTime } = await limiter.check('user-123');
 if (!isAllowed) {
   console.log('Rate limit exceeded');
 }
@@ -96,8 +96,8 @@ onError: () => 'reject' // Default
 **Methods:**
 - `check(key: string)` - Returns object:
   - `isAllowed` - `true` if allowed, `false` if rate limited
-  - `remaining` - Number of remaining requests in current window
-  - `ttl` - Time to live in milliseconds until window resets
+  - `remainingRequests` - Number of remaining requests in current window
+  - `remainingTime` - Time in milliseconds until window resets
 
 ### koaRateLimiterMiddleware(options)
 
