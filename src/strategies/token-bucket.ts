@@ -61,11 +61,11 @@ export class TokenBucketStrategy {
           local refillTokens = currentTokens + (rate * delta)
           refillTokens = math.min(capacity, refillTokens)
 
-          local isAllowed = 1
-          local newTokens = refillTokens - requested;
+          local isAllowed = 0
+          local newTokens = refillTokens - requested
 
           if newTokens >= 0 then
-            isAllowed = 0
+            isAllowed = 1
           end
 
           if isAllowed then
@@ -91,6 +91,8 @@ export class TokenBucketStrategy {
       }
 
       const [isAllowed, remainingRequests, remainingTime] = response;
+
+      console.log({ isAllowed, remainingRequests, remainingTime });
 
       return {
         isAllowed: Boolean(isAllowed),
