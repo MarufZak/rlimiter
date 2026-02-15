@@ -44,8 +44,6 @@ const app = new Koa();
 
 app.use(
   koaRateLimiterMiddleware({
-    maxTokens: 100,
-    refillMs: 60000,
     redisClient,
     strategy: new FixedWindowStrategy(),
     getKey: (ctx) => ctx.state.user?.id || ctx.ip,
@@ -102,16 +100,14 @@ onError: () => 'reject' // Default
 ### koaRateLimiterMiddleware(options)
 
 **Options:**
-- `maxTokens` - Maximum number of requests allowed per window
-- `refillMs` - Window duration in milliseconds
 - `redisClient` - Redis client instance
 - `strategy` - Rate limiting strategy (e.g., `FixedWindowStrategy`)
-- `onError` - Optional error handler that returns `'allow'` or `'reject'`
 - `getKey` - Function to extract rate limit key from context
-- `onLimit` - Optional callback when rate limit exceeded
-- `onProceed` - Optional callback when request allowed
+- `onError` - Optional error handler that returns `'allow'` or `'reject'`
+- `onLimit` - Optional callback `(key: string) => void` when rate limit exceeded
+- `onProceed` - Optional callback `(key: string) => void` when request allowed
 
-Returns 429 status when rate limited.
+Returns 429 status with `X-Ratelimit-Retry-After` header (seconds) when rate limited.
 
 ## Strategies
 

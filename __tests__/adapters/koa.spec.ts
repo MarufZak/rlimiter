@@ -96,4 +96,29 @@ describe('koa', () => {
     expect(proceedCb).toBeCalledTimes(3);
     expect(limitCb).toBeCalledTimes(1);
   });
+
+  it('sets proper headers', async () => {
+    const key = `user-1`;
+
+    await request
+      .get('/')
+      .set('x-key', key)
+      .expect(200)
+      .expect('X-Ratelimit-Remaining', '2');
+
+    await request
+      .get('/')
+      .set('x-key', key)
+      .expect(200)
+      .expect('X-Ratelimit-Remaining', '1');
+
+    await request
+      .get('/')
+      .set('x-key', key)
+      .expect(200)
+      .expect('X-Ratelimit-Remaining', '0');
+
+    const response = await request.get('/').set('x-key', key).expect(429);
+    expect(response.headers['x-ratelimit-retry-after']).toBeDefined();
+  });
 });

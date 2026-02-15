@@ -24,14 +24,17 @@ export const koaRateLimiterMiddleware = ({
 
   return async (ctx, next) => {
     const key = getKey(ctx);
-    const { isAllowed, remaining, ttl } = await limiter.check(key);
+    const { isAllowed, remainingRequests, remainingTime } =
+      await limiter.check(key);
 
     if (!isAllowed) {
       ctx.status = 429;
+      ctx.set('X-Ratelimit-Retry-After', (remainingTime / 1000).toString());
       onLimit?.(key);
       return;
     }
 
+    ctx.set('X-Ratelimit-Remaining', remainingRequests.toString());
     onProceed?.(key);
     await next();
   };
