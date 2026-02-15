@@ -1,6 +1,6 @@
 import type { RedisClientType } from 'redis';
+import { afterAll, beforeAll, beforeEach } from 'vitest';
 import { createRedisClient } from '../utils';
-import { beforeAll, beforeEach, afterAll } from 'vitest';
 
 let redisClient: RedisClientType;
 
@@ -17,7 +17,9 @@ beforeEach(async () => {
 afterAll(() => {
   try {
     redisClient.destroy();
-  } catch {}
+  } catch (err) {
+    console.log('Error while closing redis client', err);
+  }
 });
 
 export { redisClient };
