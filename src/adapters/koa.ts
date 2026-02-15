@@ -1,6 +1,7 @@
 import type { Context, Middleware } from 'koa';
 import type { RateLimiterOpts } from '../index.js';
 import RateLimiter from '../index.js';
+import { FixedWindowStrategy } from '../strategies/fixed-window.js';
 
 export interface KoaRateLimiterMiddlewareOpts extends RateLimiterOpts {
   getKey: (ctx: Context) => string;
@@ -15,11 +16,13 @@ export const koaRateLimiterMiddleware = ({
   getKey,
   onLimit,
   onProceed,
+  strategy,
 }: KoaRateLimiterMiddlewareOpts): Middleware => {
   const limiter = new RateLimiter({
     maxTokens,
     refillSeconds,
     redisClient,
+    strategy,
   });
 
   return async (ctx, next) => {

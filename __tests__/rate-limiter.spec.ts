@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import RateLimiter from '../src';
+import { FixedWindowStrategy } from '../src/strategies/fixed-window';
 import { redisClient } from './hooks/redis';
 import { wait } from './utils';
 
@@ -9,6 +10,7 @@ describe('rate-limiter', () => {
       maxTokens: 5,
       refillSeconds: 1,
       redisClient,
+      strategy: new FixedWindowStrategy(),
     });
 
     const key = `user-1`;
@@ -29,6 +31,7 @@ describe('rate-limiter', () => {
       maxTokens: 1,
       refillSeconds: 1,
       redisClient,
+      strategy: new FixedWindowStrategy(),
     });
 
     const key = `user-1`;
@@ -48,6 +51,7 @@ describe('rate-limiter', () => {
       maxTokens: 1,
       refillSeconds: 1,
       redisClient,
+      strategy: new FixedWindowStrategy(),
     });
 
     const response1 = await limiter.check(key1);
@@ -65,6 +69,7 @@ describe('rate-limiter', () => {
       maxTokens: 1,
       refillSeconds: 1,
       redisClient,
+      strategy: new FixedWindowStrategy(),
     });
 
     const key = `user-1`;
@@ -87,6 +92,7 @@ describe('rate-limiter', () => {
       maxTokens: 3,
       refillSeconds: 1,
       redisClient,
+      strategy: new FixedWindowStrategy(),
     });
 
     const key = `user-1`;
