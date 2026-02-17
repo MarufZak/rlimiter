@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     allowOnly: true,
     fileParallelism: false,
-    hookTimeout: 20_000_000,
+    hookTimeout: 10_000,
+    testTimeout: 10_000,
   },
 });
