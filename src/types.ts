@@ -7,6 +7,10 @@ import type {
   TokenBucketStrategy,
   TokenBucketStrategyCheckOpts,
 } from './strategies/token-bucket.js';
+import type {
+  LeakyBucketStrategy,
+  LeakyBucketStrategyCheckOpts,
+} from './strategies/leaky-bucket.js';
 
 // eslint-disable-next-line
 export type TRedisClient = RedisClientType<any, any, any, any>;
@@ -22,6 +26,11 @@ export interface TStrategyCommonOpts {
   onError?: (error: unknown) => 'allow' | 'reject';
 }
 
-export type TStrategy = FixedWindowStrategy | TokenBucketStrategy;
+export type TStrategy =
+  | FixedWindowStrategy
+  | TokenBucketStrategy
+  | LeakyBucketStrategy;
+
 export type TStrategyCheckOpts = FixedWindowStrategyCheckOpts &
-  TokenBucketStrategyCheckOpts;
+  TokenBucketStrategyCheckOpts &
+  LeakyBucketStrategyCheckOpts;
