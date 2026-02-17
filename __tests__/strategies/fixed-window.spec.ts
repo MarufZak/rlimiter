@@ -51,6 +51,44 @@ describe('Fixed window', () => {
     expect(response2.remainingRequests).toBe(0);
   });
 
+  it('handles fractions', async () => {
+    const key = `user-1`;
+
+    const limiter = new FixedWindow({
+      redisClient,
+      maxTokens: 2.5,
+      refillMs: 100,
+    });
+
+    const responses1 = await Promise.all([
+      limiter.check({ key }),
+      limiter.check({ key }),
+      limiter.check({ key }),
+    ]);
+
+    const isAllowed1 = responses1.map(response => response.isAllowed).sort();
+    const remainingRequests1 = responses1
+      .map(response => response.remainingRequests)
+      .sort();
+    expect(isAllowed1).toEqual([false, true, true]);
+    expect(remainingRequests1).toEqual([0, 0, 1]);
+
+    await wait(100);
+
+    const responses2 = await Promise.all([
+      limiter.check({ key }),
+      limiter.check({ key }),
+      limiter.check({ key }),
+    ]);
+
+    const isAllowed2 = responses2.map(response => response.isAllowed).sort();
+    const remainingRequests2 = responses2
+      .map(response => response.remainingRequests)
+      .sort();
+    expect(isAllowed1).toEqual([false, true, true]);
+    expect(remainingRequests1).toEqual([0, 0, 1]);
+  });
+
   it('handles multiple keys correctly', async () => {
     const key1 = `user-1`;
     const key2 = `user-2`;

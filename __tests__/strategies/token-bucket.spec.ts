@@ -53,6 +53,35 @@ describe('Token bucket', () => {
     expect(response2.remainingRequests).toBe(0);
   });
 
+  it('handles fractions', async () => {
+    const limiter = new TokenBucket({
+      capacity: 2,
+      replenishRate: 1.5,
+      redisClient,
+    });
+
+    const keys = { bucketKey: 'bucket-1', timestampKey: 'timestamp-1' };
+
+    const responses1 = await Promise.all([
+      limiter.check(keys),
+      limiter.check(keys),
+      limiter.check(keys),
+    ]);
+
+    const isAllowed1 = responses1.map(response => response.isAllowed).sort();
+    expect(isAllowed1).toEqual([false, true, true]);
+
+    await wait(1000);
+
+    const responses2 = await Promise.all([
+      limiter.check(keys),
+      limiter.check(keys),
+    ]);
+
+    const isAllowed2 = responses2.map(response => response.isAllowed).sort();
+    expect(isAllowed2).toEqual([false, true]);
+  });
+
   it('handles multiple keys correctly', async () => {
     const limiter = new TokenBucket({
       redisClient,

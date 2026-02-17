@@ -68,6 +68,33 @@ describe('Leaky bucket', () => {
     expect(remainingTime[2]).toBeGreaterThan(0);
   });
 
+  it('handles fractions', async () => {
+    const limiter = new LeakyBucket({
+      capacity: 3,
+      leakRate: 1.5,
+      redisClient,
+    });
+
+    const keys = {
+      queueKey: 'queue-1',
+      timestampKey: 'timestamp-1',
+    };
+
+    const responses = await Promise.all([
+      limiter.check(keys),
+      limiter.check(keys),
+      limiter.check(keys),
+      limiter.check(keys),
+    ]);
+    const isAllowed = responses.map(response => response.isAllowed).sort();
+    const remainingRequests = responses
+      .map(response => response.remainingRequests)
+      .sort();
+
+    expect(isAllowed).toEqual([false, true, true, true]);
+    expect(remainingRequests).toEqual([0, 0, 1, 2]);
+  });
+
   it('handles multiple keys correctly', async () => {
     const limiter = new LeakyBucket({
       capacity: 3,
