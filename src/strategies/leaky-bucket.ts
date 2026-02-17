@@ -11,10 +11,10 @@ export interface LeakyBucketStrategyCheckOpts {
 }
 
 export class LeakyBucketStrategy {
-  capacity: LeakyBucketStrategyOpts['capacity'];
-  leakRate: LeakyBucketStrategyOpts['leakRate'];
-  redisClient: LeakyBucketStrategyOpts['redisClient'];
-  onError: LeakyBucketStrategyOpts['onError'];
+  private capacity: LeakyBucketStrategyOpts['capacity'];
+  private leakRate: LeakyBucketStrategyOpts['leakRate'];
+  private redisClient: LeakyBucketStrategyOpts['redisClient'];
+  private onError: LeakyBucketStrategyOpts['onError'];
 
   constructor({
     capacity,
@@ -38,10 +38,10 @@ export class LeakyBucketStrategy {
           local queueKey = KEYS[1]
           local timestampKey = KEYS[2]
 
-          local capacity = tonumber(ARGV[1]) // 5
-          local leakRate = tonumber(ARGV[2]) // 2
-          local now = tonumber(ARGV[3]) // 1771303625977
-          local requested = tonumber(ARGV[4]) // 1
+          local capacity = tonumber(ARGV[1])
+          local leakRate = tonumber(ARGV[2])
+          local now = tonumber(ARGV[3])
+          local requested = tonumber(ARGV[4])
 
           local queueSize = tonumber(redis.call("GET", queueKey))
           local timestamp = tonumber(redis.call("GET", timestampKey))
