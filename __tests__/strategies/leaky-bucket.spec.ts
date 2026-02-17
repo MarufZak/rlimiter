@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { LeakyBucketStrategy } from '../../src/strategies';
 import { redisClient } from '../hooks/redis';
 import { wait } from '../utils';
@@ -144,5 +144,26 @@ describe('Leaky bucket', () => {
 
     const isAllowed = responses.map(response => response.isAllowed).sort();
     expect(isAllowed).toEqual([false, true, true, true]);
+  });
+
+  it('invokes onError when redis fails', async () => {
+    const errorCb = vi.fn();
+
+    const limiter = new LeakyBucketStrategy({
+      redisClient,
+      capacity: 3,
+      leakRate: 1,
+      onError: errorCb,
+    });
+
+    const keys = {
+      queueKey: 'queue-1',
+      timestampKey: 'timestamp-1',
+    };
+
+    await redisClient.close();
+    await limiter.check(keys);
+
+    expect(errorCb).toHaveBeenCalledOnce();
   });
 });
