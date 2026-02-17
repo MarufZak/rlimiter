@@ -38,10 +38,10 @@ export class LeakyBucketStrategy {
           local queueKey = KEYS[1]
           local timestampKey = KEYS[2]
 
-          local capacity = tonumber(ARGV[1])
-          local leakRate = tonumber(ARGV[2])
-          local now = tonumber(ARGV[3])
-          local requested = tonumber(ARGV[4])
+          local capacity = tonumber(ARGV[1]) // 5
+          local leakRate = tonumber(ARGV[2]) // 2
+          local now = tonumber(ARGV[3]) // 1771303625977
+          local requested = tonumber(ARGV[4]) // 1
 
           local queueSize = tonumber(redis.call("GET", queueKey))
           local timestamp = tonumber(redis.call("GET", timestampKey))
@@ -58,13 +58,18 @@ export class LeakyBucketStrategy {
           queueSize = math.max(0, queueSize - leakRate * elapsed) + requested
 
           if queueSize > capacity then
-              return { false }
+            local excessTokens = queueSize - capacity
+            local remainingTime = (excessTokens / leakRate) * 1000
+
+            return { false, 0, remainingTime }
           end
 
           redis.call("SET", queueKey, queueSize)
           redis.call("SET", timestampKey, now)
 
-          return { true }
+          local remainingRequests = math.max(0, capacity - queueSize)
+
+          return { true, remainingRequests, 0 }
         `,
         {
           keys: [queueKey, timestampKey],
@@ -81,12 +86,12 @@ export class LeakyBucketStrategy {
         throw new Error('Unexpected response format');
       }
 
-      const [isAllowed] = response;
+      const [isAllowed, remainingRequests, remainingTime] = response;
 
       return {
         isAllowed: Boolean(isAllowed),
-        remainingRequests: 0,
-        remainingTime: 0,
+        remainingRequests: Number(remainingRequests),
+        remainingTime: Number(remainingTime),
       };
     } catch (error: unknown) {
       const response = this.onError?.(error);
