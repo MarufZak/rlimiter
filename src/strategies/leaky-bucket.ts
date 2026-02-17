@@ -1,3 +1,4 @@
+import { RLimiterError } from '../errors.js';
 import type { TStrategyCommonOpts, TStrategyResult } from '../types.js';
 
 export interface LeakyBucketOpts extends TStrategyCommonOpts {
@@ -17,6 +18,14 @@ export class LeakyBucket {
   private onError: LeakyBucketOpts['onError'];
 
   constructor({ capacity, leakRate, redisClient, onError }: LeakyBucketOpts) {
+    if (capacity <= 0) {
+      throw new RLimiterError('capacity should be greated than 0');
+    }
+
+    if (leakRate <= 0) {
+      throw new RLimiterError('leakRate should be greated than 0');
+    }
+
     this.capacity = capacity;
     this.leakRate = leakRate;
     this.redisClient = redisClient;
@@ -78,7 +87,7 @@ export class LeakyBucket {
       );
 
       if (!Array.isArray(response)) {
-        throw new Error('Unexpected response format');
+        throw new RLimiterError('Unexpected response format');
       }
 
       const [isAllowed, remainingRequests, remainingTime] = response;

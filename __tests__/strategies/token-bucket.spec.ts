@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { TokenBucket } from '../../src/strategies';
 import { redisClient } from '../hooks/redis';
 import { wait } from '../utils';
+import { RLimiterError } from '../../src/errors';
 
 describe('Token bucket', () => {
   it('allows requests', async () => {
@@ -143,7 +144,27 @@ describe('Token bucket', () => {
     expect(remaining2).toEqual([0, 0, 1, 2]);
   });
 
-  it('invokes onError when redis fails', async () => {
+  it('throws error on invalid params', async () => {
+    expect(
+      () =>
+        new TokenBucket({
+          capacity: 0,
+          replenishRate: 1,
+          redisClient,
+        })
+    ).toThrow(RLimiterError);
+
+    expect(
+      () =>
+        new TokenBucket({
+          capacity: 1,
+          replenishRate: 0,
+          redisClient,
+        })
+    ).toThrow(RLimiterError);
+  });
+
+  it('onError works correctly', async () => {
     const errorCb = vi.fn();
 
     const limiter = new TokenBucket({
@@ -156,8 +177,12 @@ describe('Token bucket', () => {
     const keys = { bucketKey: 'bucket-1', timestampKey: 'timestamp-1' };
 
     await redisClient.close();
-    await limiter.check(keys);
+    const { isAllowed, remainingRequests, remainingTime } =
+      await limiter.check(keys);
 
     expect(errorCb).toHaveBeenCalledOnce();
+    expect(isAllowed).toBe(false);
+    expect(remainingRequests).toBe(0);
+    expect(remainingTime).toBe(0);
   });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { LeakyBucket } from '../../src/strategies';
 import { redisClient } from '../hooks/redis';
 import { wait } from '../utils';
+import { RLimiterError } from '../../src/errors';
 
 describe('Leaky bucket', () => {
   it('allows requests', async () => {
@@ -146,7 +147,27 @@ describe('Leaky bucket', () => {
     expect(isAllowed).toEqual([false, true, true, true]);
   });
 
-  it('invokes onError when redis fails', async () => {
+  it('throws error on invalid params', async () => {
+    expect(
+      () =>
+        new LeakyBucket({
+          capacity: 0,
+          leakRate: 1,
+          redisClient,
+        })
+    ).toThrow(RLimiterError);
+
+    expect(
+      () =>
+        new LeakyBucket({
+          capacity: 1,
+          leakRate: 0,
+          redisClient,
+        })
+    ).toThrow(RLimiterError);
+  });
+
+  it('onError works correctly', async () => {
     const errorCb = vi.fn();
 
     const limiter = new LeakyBucket({
@@ -162,8 +183,12 @@ describe('Leaky bucket', () => {
     };
 
     await redisClient.close();
-    await limiter.check(keys);
+    const { isAllowed, remainingRequests, remainingTime } =
+      await limiter.check(keys);
 
     expect(errorCb).toHaveBeenCalledOnce();
+    expect(isAllowed).toBe(false);
+    expect(remainingRequests).toBe(0);
+    expect(remainingTime).toBe(0);
   });
 });

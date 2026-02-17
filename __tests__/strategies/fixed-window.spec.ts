@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { FixedWindow } from '../../src/strategies';
+import { FixedWindow, LeakyBucket } from '../../src/strategies';
 import { redisClient } from '../hooks/redis';
 import { wait } from '../utils';
+import { RLimiterError } from '../../src/errors';
 
 describe('Fixed window', () => {
   it('allows requests', async () => {
@@ -141,7 +142,27 @@ describe('Fixed window', () => {
     expect(remaining2).toEqual([0, 0, 1, 2]);
   });
 
-  it('invokes onError when redis fails', async () => {
+  it('throws error on invalid params', async () => {
+    expect(
+      () =>
+        new FixedWindow({
+          maxTokens: 0,
+          refillMs: 1,
+          redisClient,
+        })
+    ).toThrow(RLimiterError);
+
+    expect(
+      () =>
+        new FixedWindow({
+          maxTokens: 1,
+          refillMs: 0,
+          redisClient,
+        })
+    ).toThrow(RLimiterError);
+  });
+
+  it('onError works correctly', async () => {
     const errorCb = vi.fn();
 
     const limiter = new FixedWindow({
@@ -154,8 +175,13 @@ describe('Fixed window', () => {
     const key = `user-1`;
 
     await redisClient.close();
-    await limiter.check({ key });
+    const { isAllowed, remainingRequests, remainingTime } = await limiter.check(
+      { key }
+    );
 
     expect(errorCb).toHaveBeenCalledOnce();
+    expect(isAllowed).toBe(false);
+    expect(remainingRequests).toBe(0);
+    expect(remainingTime).toBe(0);
   });
 });

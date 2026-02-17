@@ -1,3 +1,4 @@
+import { RLimiterError } from '../errors.js';
 import type { TStrategyCommonOpts, TStrategyResult } from '../types.js';
 
 export interface FixedWindowOpts extends TStrategyCommonOpts {
@@ -16,6 +17,14 @@ export class FixedWindow {
   private refillMs: FixedWindowOpts['refillMs'];
 
   constructor({ maxTokens, refillMs, redisClient, onError }: FixedWindowOpts) {
+    if (maxTokens <= 0) {
+      throw new RLimiterError('maxTokens should be greated than 0');
+    }
+
+    if (refillMs <= 0) {
+      throw new RLimiterError('refillMs should be greated than 0');
+    }
+
     this.redisClient = redisClient;
     this.onError = onError;
     this.maxTokens = maxTokens;

@@ -1,3 +1,4 @@
+import { RLimiterError } from '../errors.js';
 import type { TStrategyCommonOpts, TStrategyResult } from '../types.js';
 
 export interface TokenBucketOpts extends TStrategyCommonOpts {
@@ -22,6 +23,14 @@ export class TokenBucket {
     replenishRate,
     capacity,
   }: TokenBucketOpts) {
+    if (replenishRate <= 0) {
+      throw new RLimiterError('replenishRate should be greated than 0');
+    }
+
+    if (capacity <= 0) {
+      throw new RLimiterError('capacity should be greated than 0');
+    }
+
     this.redisClient = redisClient;
     this.onError = onError;
     this.replenishRate = replenishRate;
@@ -94,7 +103,7 @@ export class TokenBucket {
       );
 
       if (!Array.isArray(response)) {
-        throw new Error('Unexpected response format');
+        throw new RLimiterError('Unexpected response format');
       }
 
       const [isAllowed, remainingRequests, remainingTime] = response;
