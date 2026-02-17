@@ -1,27 +1,22 @@
 import type { TStrategyCommonOpts, TStrategyResult } from '../types.js';
 
-export interface LeakyBucketStrategyOpts extends TStrategyCommonOpts {
+export interface LeakyBucketOpts extends TStrategyCommonOpts {
   capacity: number;
   leakRate: number;
 }
 
-export interface LeakyBucketStrategyCheckOpts {
+export interface LeakyBucketCheckOpts {
   queueKey: string;
   timestampKey: string;
 }
 
-export class LeakyBucketStrategy {
-  private capacity: LeakyBucketStrategyOpts['capacity'];
-  private leakRate: LeakyBucketStrategyOpts['leakRate'];
-  private redisClient: LeakyBucketStrategyOpts['redisClient'];
-  private onError: LeakyBucketStrategyOpts['onError'];
+export class LeakyBucket {
+  private capacity: LeakyBucketOpts['capacity'];
+  private leakRate: LeakyBucketOpts['leakRate'];
+  private redisClient: LeakyBucketOpts['redisClient'];
+  private onError: LeakyBucketOpts['onError'];
 
-  constructor({
-    capacity,
-    leakRate,
-    redisClient,
-    onError,
-  }: LeakyBucketStrategyOpts) {
+  constructor({ capacity, leakRate, redisClient, onError }: LeakyBucketOpts) {
     this.capacity = capacity;
     this.leakRate = leakRate;
     this.redisClient = redisClient;
@@ -31,7 +26,7 @@ export class LeakyBucketStrategy {
   async check({
     queueKey,
     timestampKey,
-  }: LeakyBucketStrategyCheckOpts): TStrategyResult {
+  }: LeakyBucketCheckOpts): TStrategyResult {
     try {
       const response = await this.redisClient.eval(
         `

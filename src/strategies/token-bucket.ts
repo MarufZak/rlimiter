@@ -1,27 +1,27 @@
 import type { TStrategyCommonOpts, TStrategyResult } from '../types.js';
 
-export interface TokenBucketStrategyOpts extends TStrategyCommonOpts {
+export interface TokenBucketOpts extends TStrategyCommonOpts {
   replenishRate: number;
   capacity: number;
 }
 
-export interface TokenBucketStrategyCheckOpts {
+export interface TokenBucketCheckOpts {
   bucketKey: string;
   timestampKey: string;
 }
 
-export class TokenBucketStrategy {
-  redisClient: TokenBucketStrategyOpts['redisClient'];
-  onError: TokenBucketStrategyOpts['onError'];
-  replenishRate: TokenBucketStrategyOpts['replenishRate'];
-  capacity: TokenBucketStrategyOpts['capacity'];
+export class TokenBucket {
+  redisClient: TokenBucketOpts['redisClient'];
+  onError: TokenBucketOpts['onError'];
+  replenishRate: TokenBucketOpts['replenishRate'];
+  capacity: TokenBucketOpts['capacity'];
 
   constructor({
     redisClient,
     onError,
     replenishRate,
     capacity,
-  }: TokenBucketStrategyOpts) {
+  }: TokenBucketOpts) {
     this.redisClient = redisClient;
     this.onError = onError;
     this.replenishRate = replenishRate;
@@ -31,7 +31,7 @@ export class TokenBucketStrategy {
   async check({
     bucketKey,
     timestampKey,
-  }: TokenBucketStrategyCheckOpts): TStrategyResult {
+  }: TokenBucketCheckOpts): TStrategyResult {
     try {
       const response = await this.redisClient.eval(
         `

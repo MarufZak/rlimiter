@@ -1,33 +1,28 @@
 import type { TStrategyCommonOpts, TStrategyResult } from '../types.js';
 
-export interface FixedWindowStrategyOpts extends TStrategyCommonOpts {
+export interface FixedWindowOpts extends TStrategyCommonOpts {
   maxTokens: number;
   refillMs: number;
 }
 
-export interface FixedWindowStrategyCheckOpts {
+export interface FixedWindowCheckOpts {
   key: string;
 }
 
-export class FixedWindowStrategy {
-  private redisClient: FixedWindowStrategyOpts['redisClient'];
-  private onError: FixedWindowStrategyOpts['onError'];
-  private maxTokens: FixedWindowStrategyOpts['maxTokens'];
-  private refillMs: FixedWindowStrategyOpts['refillMs'];
+export class FixedWindow {
+  private redisClient: FixedWindowOpts['redisClient'];
+  private onError: FixedWindowOpts['onError'];
+  private maxTokens: FixedWindowOpts['maxTokens'];
+  private refillMs: FixedWindowOpts['refillMs'];
 
-  constructor({
-    maxTokens,
-    refillMs,
-    redisClient,
-    onError,
-  }: FixedWindowStrategyOpts) {
+  constructor({ maxTokens, refillMs, redisClient, onError }: FixedWindowOpts) {
     this.redisClient = redisClient;
     this.onError = onError;
     this.maxTokens = maxTokens;
     this.refillMs = refillMs;
   }
 
-  async check({ key }: FixedWindowStrategyCheckOpts): TStrategyResult {
+  async check({ key }: FixedWindowCheckOpts): TStrategyResult {
     try {
       const response = await this.redisClient.eval(
         `

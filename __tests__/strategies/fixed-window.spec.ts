@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { FixedWindowStrategy } from '../../src/strategies';
+import { FixedWindow } from '../../src/strategies';
 import { redisClient } from '../hooks/redis';
 import { wait } from '../utils';
 
 describe('Fixed window', () => {
   it('allows requests', async () => {
-    const limiter = new FixedWindowStrategy({
+    const limiter = new FixedWindow({
       redisClient,
       maxTokens: 5,
       refillMs: 1000,
@@ -33,7 +33,7 @@ describe('Fixed window', () => {
   });
 
   it('rejects requests', async () => {
-    const limiter = new FixedWindowStrategy({
+    const limiter = new FixedWindow({
       redisClient,
       maxTokens: 1,
       refillMs: 1000,
@@ -54,7 +54,7 @@ describe('Fixed window', () => {
     const key1 = `user-1`;
     const key2 = `user-2`;
 
-    const limiter = new FixedWindowStrategy({
+    const limiter = new FixedWindow({
       redisClient,
       maxTokens: 1,
       refillMs: 1000,
@@ -74,7 +74,7 @@ describe('Fixed window', () => {
   });
 
   it('token refill works correctly', async () => {
-    const limiter = new FixedWindowStrategy({
+    const limiter = new FixedWindow({
       redisClient,
       maxTokens: 1,
       refillMs: 1000,
@@ -102,7 +102,7 @@ describe('Fixed window', () => {
   });
 
   it('partial token consuption', async () => {
-    const limiter = new FixedWindowStrategy({
+    const limiter = new FixedWindow({
       redisClient,
       maxTokens: 3,
       refillMs: 1000,
@@ -144,7 +144,7 @@ describe('Fixed window', () => {
   it('invokes onError when redis fails', async () => {
     const errorCb = vi.fn();
 
-    const limiter = new FixedWindowStrategy({
+    const limiter = new FixedWindow({
       redisClient,
       maxTokens: 3,
       refillMs: 1000,

@@ -14,7 +14,7 @@ import type { Server } from 'http';
 import type TestAgent from 'supertest/lib/agent';
 import { koaRateLimiterMiddleware } from '../../src/adapters/koa';
 import { redisClient } from '../hooks/redis';
-import { FixedWindowStrategy } from '../../src/strategies/fixed-window';
+import { FixedWindow } from '../../src/strategies/fixed-window';
 
 let app: Server;
 let request: TestAgent;
@@ -34,7 +34,7 @@ beforeAll(() => {
       getKey: ctx => ({ key: ctx.get('x-key') }),
       onLimit: limitCb,
       onProceed: proceedCb,
-      strategy: new FixedWindowStrategy({
+      strategy: new FixedWindow({
         maxTokens: 3,
         refillMs: 1000,
         redisClient,

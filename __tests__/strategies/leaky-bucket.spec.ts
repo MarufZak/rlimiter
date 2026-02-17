@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { LeakyBucketStrategy } from '../../src/strategies';
+import { LeakyBucket } from '../../src/strategies';
 import { redisClient } from '../hooks/redis';
 import { wait } from '../utils';
 
 describe('Leaky bucket', () => {
   it('allows requests', async () => {
-    const limiter = new LeakyBucketStrategy({
+    const limiter = new LeakyBucket({
       capacity: 3,
       leakRate: 1,
       redisClient,
@@ -36,7 +36,7 @@ describe('Leaky bucket', () => {
   });
 
   it('rejects requests', async () => {
-    const limiter = new LeakyBucketStrategy({
+    const limiter = new LeakyBucket({
       capacity: 2,
       leakRate: 1,
       redisClient,
@@ -68,7 +68,7 @@ describe('Leaky bucket', () => {
   });
 
   it('handles multiple keys correctly', async () => {
-    const limiter = new LeakyBucketStrategy({
+    const limiter = new LeakyBucket({
       capacity: 3,
       leakRate: 1,
       redisClient,
@@ -106,7 +106,7 @@ describe('Leaky bucket', () => {
   });
 
   it('token refilling works correctly', async () => {
-    const limiter = new LeakyBucketStrategy({
+    const limiter = new LeakyBucket({
       capacity: 3,
       leakRate: 1,
       redisClient,
@@ -149,7 +149,7 @@ describe('Leaky bucket', () => {
   it('invokes onError when redis fails', async () => {
     const errorCb = vi.fn();
 
-    const limiter = new LeakyBucketStrategy({
+    const limiter = new LeakyBucket({
       redisClient,
       capacity: 3,
       leakRate: 1,

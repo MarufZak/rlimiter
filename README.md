@@ -14,12 +14,12 @@ npm install @marufzak/rlimiter redis
 
 ```typescript
 import { createClient } from 'redis';
-import { FixedWindowStrategy } from '@marufzak/rlimiter/strategies';
+import { FixedWindow } from '@marufzak/rlimiter/strategies';
 
 const redisClient = createClient();
 await redisClient.connect();
 
-const strategy = new FixedWindowStrategy({
+const strategy = new FixedWindow({
   maxTokens: 10,
   refillMs: 60000,
   redisClient,
@@ -38,12 +38,12 @@ if (!isAllowed) {
 
 ```typescript
 import { createClient } from 'redis';
-import { TokenBucketStrategy } from '@marufzak/rlimiter/strategies';
+import { TokenBucket } from '@marufzak/rlimiter/strategies';
 
 const redisClient = createClient();
 await redisClient.connect();
 
-const strategy = new TokenBucketStrategy({
+const strategy = new TokenBucket({
   capacity: 10,
   replenishRate: 1, // tokens per second
   redisClient,
@@ -64,11 +64,11 @@ if (!isAllowed) {
 ```typescript
 import Koa from 'koa';
 import { koaRateLimiterMiddleware } from '@marufzak/rlimiter/adapters/koa';
-import { FixedWindowStrategy } from '@marufzak/rlimiter/strategies';
+import { FixedWindow } from '@marufzak/rlimiter/strategies';
 
 const app = new Koa();
 
-const strategy = new FixedWindowStrategy({
+const strategy = new FixedWindow({
   maxTokens: 100,
   refillMs: 60000,
   redisClient,
@@ -87,11 +87,11 @@ app.use(
 ```typescript
 import Koa from 'koa';
 import { koaRateLimiterMiddleware } from '@marufzak/rlimiter/adapters/koa';
-import { TokenBucketStrategy } from '@marufzak/rlimiter/strategies';
+import { TokenBucket } from '@marufzak/rlimiter/strategies';
 
 const app = new Koa();
 
-const strategy = new TokenBucketStrategy({
+const strategy = new TokenBucket({
   capacity: 100,
   replenishRate: 10,
   redisClient,
@@ -116,7 +116,7 @@ app.use(
 By default, requests are rejected when Redis fails. You can customize this behavior:
 
 ```typescript
-const strategy = new FixedWindowStrategy({
+const strategy = new FixedWindow({
   maxTokens: 10,
   refillMs: 60000,
   redisClient,
@@ -143,7 +143,7 @@ onError: () => 'reject'; // Default
 
 ## API
 
-### FixedWindowStrategy(options)
+### FixedWindow(options)
 
 **Options:**
 
@@ -159,7 +159,7 @@ onError: () => 'reject'; // Default
   - `remainingRequests` - Number of remaining requests in current window
   - `remainingTime` - Time in milliseconds until window resets
 
-### TokenBucketStrategy(options)
+### TokenBucket(options)
 
 **Options:**
 
@@ -179,7 +179,7 @@ onError: () => 'reject'; // Default
 
 **Options:**
 
-- `strategy` - Rate limiting strategy instance (e.g., `FixedWindowStrategy` or `TokenBucketStrategy`)
+- `strategy` - Rate limiting strategy instance (e.g., `FixedWindow` or `TokenBucket`)
 - `getKey` - Function to extract rate limit key(s) from context (returns strategy-specific check options)
 - `onLimit` - Optional callback when rate limit exceeded
 - `onProceed` - Optional callback when request allowed
@@ -188,24 +188,24 @@ Returns 429 status with `X-Ratelimit-Retry-After` header (seconds) and sets `X-R
 
 ## Strategies
 
-### FixedWindowStrategy
+### FixedWindow
 
 ```typescript
-import { FixedWindowStrategy } from '@marufzak/rlimiter/strategies';
+import { FixedWindow } from '@marufzak/rlimiter/strategies';
 
-const strategy = new FixedWindowStrategy({
+const strategy = new FixedWindow({
   maxTokens: 100,
   refillMs: 60000,
   redisClient,
 });
 ```
 
-### TokenBucketStrategy
+### TokenBucket
 
 ```typescript
-import { TokenBucketStrategy } from '@marufzak/rlimiter/strategies';
+import { TokenBucket } from '@marufzak/rlimiter/strategies';
 
-const strategy = new TokenBucketStrategy({
+const strategy = new TokenBucket({
   capacity: 100,
   replenishRate: 10, // 10 tokens per second
   redisClient,

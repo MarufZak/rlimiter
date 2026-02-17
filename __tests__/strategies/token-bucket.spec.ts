@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { TokenBucketStrategy } from '../../src/strategies';
+import { TokenBucket } from '../../src/strategies';
 import { redisClient } from '../hooks/redis';
 import { wait } from '../utils';
 
 describe('Token bucket', () => {
   it('allows requests', async () => {
-    const limiter = new TokenBucketStrategy({
+    const limiter = new TokenBucket({
       redisClient,
       capacity: 5,
       replenishRate: 5,
@@ -35,7 +35,7 @@ describe('Token bucket', () => {
   });
 
   it('rejects requests', async () => {
-    const limiter = new TokenBucketStrategy({
+    const limiter = new TokenBucket({
       redisClient,
       capacity: 1,
       replenishRate: 1,
@@ -53,7 +53,7 @@ describe('Token bucket', () => {
   });
 
   it('handles multiple keys correctly', async () => {
-    const limiter = new TokenBucketStrategy({
+    const limiter = new TokenBucket({
       redisClient,
       capacity: 1,
       replenishRate: 1,
@@ -76,7 +76,7 @@ describe('Token bucket', () => {
   });
 
   it('token refill works correctly', async () => {
-    const limiter = new TokenBucketStrategy({
+    const limiter = new TokenBucket({
       redisClient,
       capacity: 1,
       replenishRate: 1,
@@ -104,7 +104,7 @@ describe('Token bucket', () => {
   });
 
   it('partial token consuption', async () => {
-    const limiter = new TokenBucketStrategy({
+    const limiter = new TokenBucket({
       redisClient,
       capacity: 3,
       replenishRate: 3,
@@ -146,7 +146,7 @@ describe('Token bucket', () => {
   it('invokes onError when redis fails', async () => {
     const errorCb = vi.fn();
 
-    const limiter = new TokenBucketStrategy({
+    const limiter = new TokenBucket({
       redisClient,
       capacity: 3,
       replenishRate: 3,
