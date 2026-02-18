@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
-import { FixedWindow, LeakyBucket } from '../../src/strategies';
+import { describe, expect, it, vi } from 'vitest';
+import { RLimiterError } from '../../src/errors';
+import { FixedWindow } from '../../src/strategies';
 import { redisClient } from '../hooks/redis';
 import { wait } from '../utils';
-import { RLimiterError } from '../../src/errors';
 
 describe('Fixed window', () => {
   it('allows requests', async () => {

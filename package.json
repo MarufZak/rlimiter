@@ -1,6 +1,6 @@
 {
   "name": "@marufzak/rlimiter",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Rate limiter for NodeJS",
   "type": "module",
   "scripts": {
