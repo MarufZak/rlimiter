@@ -22,15 +22,15 @@ describe('Token bucket', () => {
       limiter.check(keys),
     ]);
 
-    const boolean = responses.map(response => response.isAllowed);
+    const isAllowed = responses.map(response => response.isAllowed);
     const remainingRequests = responses
       .map(response => response.remainingRequests)
-      .toSorted();
+      .sort();
     const remainingTime = responses
       .map(response => response.remainingTime)
       .sort();
 
-    expect(boolean).toEqual([true, true, true, true, true]);
+    expect(isAllowed).toEqual([true, true, true, true, true]);
     expect(remainingRequests).toEqual([0, 1, 2, 3, 4]);
     expect(remainingTime).toEqual([0, 0, 0, 0, expect.any(Number)]);
   });
@@ -47,13 +47,15 @@ describe('Token bucket', () => {
     const response1 = await limiter.check(keys);
     expect(response1.isAllowed).toBe(true);
     expect(response1.remainingRequests).toBe(0);
+    expect(response1.remainingTime).toBe(0);
 
     const response2 = await limiter.check(keys);
     expect(response2.isAllowed).toBe(false);
     expect(response2.remainingRequests).toBe(0);
+    expect(response2.remainingTime).toBeGreaterThan(0);
   });
 
-  it('handles fractions', async () => {
+  it('handles fraction options', async () => {
     const limiter = new TokenBucket({
       capacity: 2,
       replenishRate: 1.5,
@@ -95,14 +97,17 @@ describe('Token bucket', () => {
     const response1 = await limiter.check(keys1);
     expect(response1.isAllowed).toBe(true);
     expect(response1.remainingRequests).toBe(0);
+    expect(response1.remainingTime).toBe(0);
 
     const response2 = await limiter.check(keys2);
     expect(response2.isAllowed).toBe(true);
     expect(response2.remainingRequests).toBe(0);
+    expect(response2.remainingTime).toBe(0);
 
     const response3 = await limiter.check(keys2);
     expect(response3.isAllowed).toBe(false);
     expect(response3.remainingRequests).toBe(0);
+    expect(response3.remainingTime).toBeGreaterThan(0);
   });
 
   it('token refill works correctly', async () => {
@@ -117,20 +122,24 @@ describe('Token bucket', () => {
     const response1 = await limiter.check(keys);
     expect(response1.isAllowed).toBe(true);
     expect(response1.remainingRequests).toBe(0);
+    expect(response1.remainingTime).toBe(0);
 
     const response2 = await limiter.check(keys);
     expect(response2.isAllowed).toBe(false);
     expect(response2.remainingRequests).toBe(0);
+    expect(response2.remainingTime).toBeGreaterThan(0);
 
     await wait(1000);
 
     const response3 = await limiter.check(keys);
     expect(response3.isAllowed).toBe(true);
     expect(response3.remainingRequests).toBe(0);
+    expect(response3.remainingTime).toBe(0);
 
     const response4 = await limiter.check(keys);
     expect(response4.isAllowed).toBe(false);
     expect(response4.remainingRequests).toBe(0);
+    expect(response4.remainingTime).toBeGreaterThan(0);
   });
 
   it('partial token consuption', async () => {
@@ -148,12 +157,14 @@ describe('Token bucket', () => {
     ]);
 
     const isAllowed1 = responses.map(response => response.isAllowed);
-    const remaining1 = responses
+    const remainingRequests1 = responses
       .map(response => response.remainingRequests)
       .sort();
+    const remainingTime1 = responses.map(response => response.remainingTime);
 
     expect(isAllowed1).toEqual([true, true]);
-    expect(remaining1).toEqual([1, 2]);
+    expect(remainingRequests1).toEqual([1, 2]);
+    expect(remainingTime1).toEqual([0, 0]);
 
     await wait(1000);
 
@@ -165,12 +176,17 @@ describe('Token bucket', () => {
     ]);
 
     const isAllowed2 = responses2.map(response => response.isAllowed).sort();
-    const remaining2 = responses2
+    const remainingRequests2 = responses2
       .map(response => response.remainingRequests)
+      .sort();
+    const remainingTime2 = responses2
+      .map(response => response.remainingTime)
       .sort();
 
     expect(isAllowed2).toEqual([false, true, true, true]);
-    expect(remaining2).toEqual([0, 0, 1, 2]);
+    expect(remainingRequests2).toEqual([0, 0, 1, 2]);
+    expect(remainingTime2.slice(0, 3)).toEqual([0, 0, 0]);
+    expect(remainingTime2.at(-1)).toBeGreaterThan(0);
   });
 
   it('throws error on invalid params', async () => {
