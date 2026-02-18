@@ -24,11 +24,11 @@ export class TokenBucket {
     capacity,
   }: TokenBucketOpts) {
     if (replenishRate <= 0) {
-      throw new RLimiterError('replenishRate should be greated than 0');
+      throw new RLimiterError('replenishRate should be greater than 0');
     }
 
     if (capacity <= 0) {
-      throw new RLimiterError('capacity should be greated than 0');
+      throw new RLimiterError('capacity should be greater than 0');
     }
 
     this.redisClient = redisClient;
@@ -71,25 +71,19 @@ export class TokenBucket {
           refillTokens = math.min(capacity, refillTokens)
 
           local newTokens = refillTokens - requested
-          local isAllowed = 0
-          local remainingTime = 0
 
-          if newTokens >= 0 then
-            isAllowed = 1
-          end
+          if newTokens < 0 then
+            local remainingTime = math.ceil((requested - newTokens) / rate * 1000)
 
-          if newTokens < requested then
-            remainingTime = math.ceil((requested - newTokens) / rate * 1000)
+            return { false, 0, remainingTime }
           end
 
           newTokens = math.max(0, newTokens)
 
-          if isAllowed == 1 then
-            redis.call("SETEX", bucketKey, ttl, newTokens)
-            redis.call("SETEX", timestampKey, ttl, now)
-          end
+          redis.call("SETEX", bucketKey, ttl, newTokens)
+          redis.call("SETEX", timestampKey, ttl, now)
 
-          return { isAllowed, newTokens, remainingTime }
+          return { true, newTokens, 0 }
         `,
         {
           keys: [bucketKey, timestampKey],
