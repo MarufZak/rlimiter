@@ -1,6 +1,6 @@
 # @marufzak/rlimiter
 
-Redis-backed rate limiter for Node.js with pluggable strategies.
+Redis-backed rate limiter for Node.js with multiple rate limiting strategies.
 
 ## Installation
 
@@ -14,7 +14,7 @@ npm install @marufzak/rlimiter redis
 
 ```typescript
 import { createClient } from 'redis';
-import { FixedWindow } from '@marufzak/rlimiter/strategies';
+import { FixedWindow } from '@marufzak/rlimiter';
 
 const redisClient = createClient();
 await redisClient.connect();
@@ -38,7 +38,7 @@ if (!isAllowed) {
 
 ```typescript
 import { createClient } from 'redis';
-import { TokenBucket } from '@marufzak/rlimiter/strategies';
+import { TokenBucket } from '@marufzak/rlimiter';
 
 const redisClient = createClient();
 await redisClient.connect();
@@ -59,12 +59,37 @@ if (!isAllowed) {
 }
 ```
 
+### Basic - Leaky Bucket
+
+```typescript
+import { createClient } from 'redis';
+import { LeakyBucket } from '@marufzak/rlimiter';
+
+const redisClient = createClient();
+await redisClient.connect();
+
+const strategy = new LeakyBucket({
+  capacity: 10,
+  leakRate: 1, // requests per second
+  redisClient,
+});
+
+const { isAllowed, remainingRequests, remainingTime } = await strategy.check({
+  queueKey: 'queue:user-123',
+  timestampKey: 'timestamp:user-123',
+});
+
+if (!isAllowed) {
+  console.log('Rate limit exceeded');
+}
+```
+
 ### Koa Middleware - Fixed Window
 
 ```typescript
 import Koa from 'koa';
 import { koaRateLimiterMiddleware } from '@marufzak/rlimiter/adapters/koa';
-import { FixedWindow } from '@marufzak/rlimiter/strategies';
+import { FixedWindow } from '@marufzak/rlimiter';
 
 const app = new Koa();
 
@@ -87,7 +112,7 @@ app.use(
 ```typescript
 import Koa from 'koa';
 import { koaRateLimiterMiddleware } from '@marufzak/rlimiter/adapters/koa';
-import { TokenBucket } from '@marufzak/rlimiter/strategies';
+import { TokenBucket } from '@marufzak/rlimiter';
 
 const app = new Koa();
 
@@ -104,6 +129,35 @@ app.use(
       const id = ctx.state.user?.id || ctx.ip;
       return {
         bucketKey: `bucket:${id}`,
+        timestampKey: `timestamp:${id}`,
+      };
+    },
+  })
+);
+```
+
+### Koa Middleware - Leaky Bucket
+
+```typescript
+import Koa from 'koa';
+import { koaRateLimiterMiddleware } from '@marufzak/rlimiter/adapters/koa';
+import { LeakyBucket } from '@marufzak/rlimiter';
+
+const app = new Koa();
+
+const strategy = new LeakyBucket({
+  capacity: 100,
+  leakRate: 10,
+  redisClient,
+});
+
+app.use(
+  koaRateLimiterMiddleware({
+    strategy,
+    getKey: ctx => {
+      const id = ctx.state.user?.id || ctx.ip;
+      return {
+        queueKey: `queue:${id}`,
         timestampKey: `timestamp:${id}`,
       };
     },
@@ -173,13 +227,29 @@ onError: () => 'reject'; // Default
 - `check({ bucketKey, timestampKey })` - Returns object:
   - `isAllowed` - `true` if allowed, `false` if rate limited
   - `remainingRequests` - Number of remaining tokens in bucket
-  - `remainingTime` - Time in milliseconds until bucket refills (placeholder)
+  - `remainingTime` - Time in milliseconds until bucket refills
+
+### LeakyBucket(options)
+
+**Options:**
+
+- `capacity` - Maximum queue size
+- `leakRate` - Requests processed per second
+- `redisClient` - Redis client instance
+- `onError` - Optional error handler that returns `'allow'` or `'reject'` (default: rejects)
+
+**Methods:**
+
+- `check({ queueKey, timestampKey })` - Returns object:
+  - `isAllowed` - `true` if allowed, `false` if rate limited
+  - `remainingRequests` - Number of available slots in queue
+  - `remainingTime` - Time in milliseconds until queue has capacity
 
 ### koaRateLimiterMiddleware(options)
 
 **Options:**
 
-- `strategy` - Rate limiting strategy instance (e.g., `FixedWindow` or `TokenBucket`)
+- `strategy` - Rate limiting strategy instance (e.g., `FixedWindow`, `TokenBucket`, or `LeakyBucket`)
 - `getKey` - Function to extract rate limit key(s) from context (returns strategy-specific check options)
 - `onLimit` - Optional callback when rate limit exceeded
 - `onProceed` - Optional callback when request allowed
@@ -191,7 +261,7 @@ Returns 429 status with `X-Ratelimit-Retry-After` header (seconds) and sets `X-R
 ### FixedWindow
 
 ```typescript
-import { FixedWindow } from '@marufzak/rlimiter/strategies';
+import { FixedWindow } from '@marufzak/rlimiter';
 
 const strategy = new FixedWindow({
   maxTokens: 100,
@@ -203,11 +273,23 @@ const strategy = new FixedWindow({
 ### TokenBucket
 
 ```typescript
-import { TokenBucket } from '@marufzak/rlimiter/strategies';
+import { TokenBucket } from '@marufzak/rlimiter';
 
 const strategy = new TokenBucket({
   capacity: 100,
   replenishRate: 10, // 10 tokens per second
+  redisClient,
+});
+```
+
+### LeakyBucket
+
+```typescript
+import { LeakyBucket } from '@marufzak/rlimiter';
+
+const strategy = new LeakyBucket({
+  capacity: 100,
+  leakRate: 10, // 10 requests per second
   redisClient,
 });
 ```
