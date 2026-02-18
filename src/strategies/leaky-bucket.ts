@@ -44,8 +44,9 @@ export class LeakyBucket {
 
           local capacity = tonumber(ARGV[1])
           local leakRate = tonumber(ARGV[2])
-          local now = tonumber(ARGV[3])
-          local requested = tonumber(ARGV[4])
+          local requested = tonumber(ARGV[3])
+
+          local now = tonumber(redis.call("TIME")[1])
 
           local queueSize = tonumber(redis.call("GET", queueKey))
           local timestamp = tonumber(redis.call("GET", timestampKey))
@@ -58,12 +59,12 @@ export class LeakyBucket {
               timestamp = now
           end
 
-          local elapsed = (now - timestamp) / 1000
+          local elapsed = now - timestamp
           queueSize = math.max(0, queueSize - leakRate * elapsed) + requested
 
           if queueSize > capacity then
             local excessTokens = queueSize - capacity
-            local remainingTime = (excessTokens / leakRate) * 1000
+            local remainingTime = (requested / leakRate) * 1000
 
             return { false, 0, remainingTime }
           end
@@ -77,12 +78,7 @@ export class LeakyBucket {
         `,
         {
           keys: [queueKey, timestampKey],
-          arguments: [
-            this.capacity.toString(),
-            this.leakRate.toString(),
-            new Date().getTime().toString(),
-            '1',
-          ],
+          arguments: [this.capacity.toString(), this.leakRate.toString(), '1'],
         }
       );
 

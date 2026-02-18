@@ -68,7 +68,7 @@ describe('Leaky bucket', () => {
     expect(remainingTime[2]).toBeGreaterThan(0);
   });
 
-  it('handles fractions', async () => {
+  it('handles fraction options', async () => {
     const limiter = new LeakyBucket({
       capacity: 3,
       leakRate: 1.5,

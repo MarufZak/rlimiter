@@ -49,8 +49,9 @@ export class TokenBucket {
 
           local capacity = tonumber(ARGV[1])
           local rate = tonumber(ARGV[2])
-          local now = tonumber(ARGV[3])
-          local requested = tonumber(ARGV[4])
+          local requested = tonumber(ARGV[3])
+
+          local now = tonumber(redis.call("TIME")[1])
 
           local fillTime = capacity / rate
           local ttl = math.floor(fillTime * 2)
@@ -90,7 +91,6 @@ export class TokenBucket {
           arguments: [
             this.capacity.toString(),
             this.replenishRate.toString(),
-            Math.floor(Date.now() / 1000).toString(),
             '1',
           ],
         }

@@ -44,19 +44,21 @@ export class FixedWindow {
           local ttl = tonumber(redis.call("PTTL", countKey))
 
           if not count or ttl < 0 then
-            redis.call("PSETEX", countKey, refillMs, maxTokens - 1)
-            return {1, maxTokens - 1, refillMs}
+            local tokensLeft = maxTokens - 1
+            redis.call("PSETEX", countKey, refillMs, tokensLeft)
+
+            return { true, tokensLeft, 0 }
           end
 
           count = count - 1
 
           if count < 0 then
-            return {0, count + 1, ttl}
+            return { false, 0, ttl }
           end
 
           redis.call("SET", countKey, count, "KEEPTTL")
 
-          return {1, count, ttl}
+          return { true, count, 0 }
         `,
         {
           keys: [key],
