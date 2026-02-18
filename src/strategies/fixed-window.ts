@@ -18,11 +18,11 @@ export class FixedWindow {
 
   constructor({ maxTokens, refillMs, redisClient, onError }: FixedWindowOpts) {
     if (maxTokens <= 0) {
-      throw new RLimiterError('maxTokens should be greated than 0');
+      throw new RLimiterError('maxTokens should be greater than 0');
     }
 
     if (refillMs <= 0) {
-      throw new RLimiterError('refillMs should be greated than 0');
+      throw new RLimiterError('refillMs should be greater than 0');
     }
 
     this.redisClient = redisClient;

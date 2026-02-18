@@ -165,7 +165,7 @@ describe('Fixed window', () => {
     expect(response4.remainingTime).toBeGreaterThan(0);
   });
 
-  it('partial token consuption', async () => {
+  it('partial token consumption', async () => {
     const limiter = new FixedWindow({
       redisClient,
       maxTokens: 3,

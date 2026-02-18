@@ -142,7 +142,7 @@ describe('Token bucket', () => {
     expect(response4.remainingTime).toBeGreaterThan(0);
   });
 
-  it('partial token consuption', async () => {
+  it('partial token consumption', async () => {
     const limiter = new TokenBucket({
       redisClient,
       capacity: 3,

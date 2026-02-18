@@ -19,11 +19,11 @@ export class LeakyBucket {
 
   constructor({ capacity, leakRate, redisClient, onError }: LeakyBucketOpts) {
     if (capacity <= 0) {
-      throw new RLimiterError('capacity should be greated than 0');
+      throw new RLimiterError('capacity should be greater than 0');
     }
 
     if (leakRate <= 0) {
-      throw new RLimiterError('leakRate should be greated than 0');
+      throw new RLimiterError('leakRate should be greater than 0');
     }
 
     this.capacity = capacity;
