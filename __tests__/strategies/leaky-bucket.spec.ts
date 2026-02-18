@@ -145,11 +145,23 @@ describe('Leaky bucket', () => {
       timestampKey: 'timestamp-1',
     };
 
-    await Promise.all([
+    const responses1 = await Promise.all([
       limiter.check(keys),
       limiter.check(keys),
       limiter.check(keys),
     ]);
+
+    const isAllowed1 = responses1.map(response => response.isAllowed).sort();
+    const remainingRequests1 = responses1
+      .map(response => response.remainingRequests)
+      .sort();
+    const remainingTime1 = responses1
+      .map(response => response.remainingTime)
+      .sort();
+
+    expect(isAllowed1).toEqual([true, true, true]);
+    expect(remainingRequests1).toEqual([0, 1, 2]);
+    expect(remainingTime1).toEqual([0, 0, 0]);
 
     await wait(500);
 
@@ -163,15 +175,27 @@ describe('Leaky bucket', () => {
 
     await wait(3000);
 
-    const responses = await Promise.all([
+    const responses2 = await Promise.all([
       limiter.check(keys),
       limiter.check(keys),
       limiter.check(keys),
       limiter.check(keys),
     ]);
 
-    const isAllowed = responses.map(response => response.isAllowed).sort();
-    expect(isAllowed).toEqual([false, true, true, true]);
+    const isAllowed2 = responses2.map(response => response.isAllowed).sort();
+    const remainingRequests2 = responses2
+      .map(response => response.remainingRequests)
+      .sort();
+    const remainingTime2 = responses2
+      .map(response => response.remainingTime)
+      .sort();
+
+    expect(isAllowed2).toEqual([false, true, true, true]);
+    expect(remainingRequests2).toEqual([0, 0, 1, 2]);
+    expect(remainingTime2.slice(0, remainingTime2.length - 1)).toEqual([
+      0, 0, 0,
+    ]);
+    expect(remainingTime2.at(-1)).toBeGreaterThan(0);
   });
 
   it('throws error on invalid params', async () => {

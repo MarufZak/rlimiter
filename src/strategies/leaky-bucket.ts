@@ -46,7 +46,8 @@ export class LeakyBucket {
           local leakRate = tonumber(ARGV[2])
           local requested = tonumber(ARGV[3])
 
-          local now = tonumber(redis.call("TIME")[1])
+          local time = redis.call("TIME")
+          local now = (tonumber(time[1]) * 1000) + math.floor(tonumber(time[2]) / 1000)
 
           local queueSize = tonumber(redis.call("GET", queueKey))
           local timestamp = tonumber(redis.call("GET", timestampKey))
@@ -59,7 +60,7 @@ export class LeakyBucket {
               timestamp = now
           end
 
-          local elapsed = now - timestamp
+          local elapsed = (now - timestamp) / 1000
           queueSize = math.max(0, queueSize - leakRate * elapsed) + requested
 
           if queueSize > capacity then
