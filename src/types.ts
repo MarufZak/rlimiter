@@ -11,6 +11,10 @@ import type {
   LeakyBucket,
   LeakyBucketCheckOpts,
 } from './strategies/leaky-bucket.js';
+import type {
+  SlidingWindowLog,
+  SlidingWindowLogCheckOpts,
+} from './strategies/sliding-window-log.js';
 
 // eslint-disable-next-line
 export type TRedisClient = RedisClientType<any, any, any, any>;
@@ -26,8 +30,13 @@ export interface TStrategyCommonOpts {
   onError?: (error: unknown) => 'allow' | 'reject';
 }
 
-export type TStrategy = FixedWindow | TokenBucket | LeakyBucket;
+export type TStrategy =
+  | FixedWindow
+  | TokenBucket
+  | LeakyBucket
+  | SlidingWindowLog;
 
 export type TStrategyCheckOpts = FixedWindowCheckOpts &
   TokenBucketCheckOpts &
-  LeakyBucketCheckOpts;
+  LeakyBucketCheckOpts &
+  SlidingWindowLogCheckOpts;
