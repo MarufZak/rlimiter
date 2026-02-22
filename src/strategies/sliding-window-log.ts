@@ -43,36 +43,37 @@ export class SlidingWindowLog {
           local queueKey = KEYS[1]
 
           local capacity = tonumber(ARGV[1])
-          local windowMs = tonumber(ARGV[2])
+          local windowS = tonumber(ARGV[2]) / 1000
+          local nonce = ARGV[3]
 
           local time = redis.call("TIME")
-
-          -- in lua doubles has 15 digits, which truncates microseconds to 3 digits
-          -- removing first 3 digits of seconds in favor of microsecond precision
-          local seconds = tonumber(string.sub(tostring(time[1]), 3))
-
-          local windowEnd = tonumber(seconds .. "." .. time[2])
-          local windowStart = windowEnd - (windowMs / 1000)
+          local windowEnd = tonumber(time[1] .. "." .. time[2])
+          local windowStart = windowEnd - windowS
 
           redis.call("ZREMRANGEBYSCORE", queueKey, "-inf", windowStart)
           local members = redis.call("ZRANGE", queueKey, 0, -1)
 
           if #members >= capacity then
-            local remainingTime = (tonumber(members[1]) - windowStart) * 1000
+            local firstScore = tonumber(redis.call("ZSCORE", queueKey, members[1]))
+            local remainingTime = (firstScore - windowStart) * 1000
 
-            return { false, 0, remainingTime, tostring(windowEnd) }
+            return { false, 0, remainingTime }
           end
 
-          table.insert(members, tostring(windowEnd))
-          redis.call("ZADD", queueKey, windowEnd, windowEnd)
+          table.insert(members, nonce)
+          redis.call("ZADD", queueKey, windowEnd, nonce)
 
           local requestsRemaining = capacity - #members
 
-          return { true, requestsRemaining, 0, tostring(windowEnd) }
+          return { true, requestsRemaining, 0 }
         `,
         {
           keys: [queueKey],
-          arguments: [this.capacity.toString(), this.windowMs.toString()],
+          arguments: [
+            this.capacity.toString(),
+            this.windowMs.toString(),
+            Math.random().toString().slice(2),
+          ],
         }
       );
 
@@ -80,9 +81,7 @@ export class SlidingWindowLog {
         throw new RLimiterError('Unexpected response format');
       }
 
-      const [isAllowed, remainingRequests, remainingTime, windowEnd] = response;
-
-      console.log({ windowEnd });
+      const [isAllowed, remainingRequests, remainingTime] = response;
 
       return {
         isAllowed: Boolean(isAllowed),

@@ -92,41 +92,41 @@ describe('Sliding window log', () => {
     expect(remainingRequests).toEqual([0, 0, 1, 2]);
   });
 
-  // it('handles multiple keys correctly', async () => {
-  //   const limiter = new SlidingWindowLog({
-  //     capacity: 3,
-  //     windowMs: 1000,
-  //     redisClient,
-  //   });
+  it('handles multiple keys correctly', async () => {
+    const limiter = new SlidingWindowLog({
+      capacity: 3,
+      windowMs: 1000,
+      redisClient,
+    });
 
-  //   const keys1 = {
-  //     queueKey: 'queue-1',
-  //   };
+    const keys1 = {
+      queueKey: 'queue-1',
+    };
 
-  //   const keys2 = {
-  //     queueKey: 'queue-2',
-  //   };
+    const keys2 = {
+      queueKey: 'queue-2',
+    };
 
-  //   const responses1 = await Promise.all([
-  //     limiter.check(keys1),
-  //     limiter.check(keys1),
-  //     limiter.check(keys1),
-  //     limiter.check(keys1),
-  //   ]);
+    const responses1 = await Promise.all([
+      limiter.check(keys1),
+      limiter.check(keys1),
+      limiter.check(keys1),
+      limiter.check(keys1),
+    ]);
 
-  //   const responses2 = await Promise.all([
-  //     limiter.check(keys2),
-  //     limiter.check(keys2),
-  //     limiter.check(keys2),
-  //     limiter.check(keys2),
-  //   ]);
+    const responses2 = await Promise.all([
+      limiter.check(keys2),
+      limiter.check(keys2),
+      limiter.check(keys2),
+      limiter.check(keys2),
+    ]);
 
-  //   const isAllowed1 = responses1.map(response => response.isAllowed).sort();
-  //   const isAllowed2 = responses2.map(response => response.isAllowed).sort();
+    const isAllowed1 = responses1.map(response => response.isAllowed).sort();
+    const isAllowed2 = responses2.map(response => response.isAllowed).sort();
 
-  //   expect(isAllowed1).toEqual([false, true, true, true]);
-  //   expect(isAllowed2).toEqual([false, true, true, true]);
-  // });
+    expect(isAllowed1).toEqual([false, true, true, true]);
+    expect(isAllowed2).toEqual([false, true, true, true]);
+  });
 
   // it('token refilling works correctly', async () => {
   //   const limiter = new SlidingWindowLog({
@@ -160,7 +160,6 @@ describe('Sliding window log', () => {
   //   await wait(50);
 
   //   const response1 = await limiter.check(keys);
-  //   console.log({ response1 });
   //   expect(response1.isAllowed).toBe(false);
 
   //   await wait(50);
@@ -168,7 +167,7 @@ describe('Sliding window log', () => {
   //   const response2 = await limiter.check(keys);
   //   expect(response2.isAllowed).toBe(true);
 
-  //   await wait(300);
+  //   await wait(100);
 
   //   const responses2 = await Promise.all([
   //     limiter.check(keys),
