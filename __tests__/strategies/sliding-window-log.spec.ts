@@ -1,0 +1,239 @@
+import { describe, expect, it, vi } from 'vitest';
+import { RLimiterError } from '../../src/errors';
+import { SlidingWindowLog } from '../../src/strategies';
+import { redisClient } from '../hooks/redis';
+import { wait } from '../utils';
+
+describe('Sliding window log', () => {
+  it('allows requests', async () => {
+    const limiter = new SlidingWindowLog({
+      capacity: 3,
+      windowMs: 1000,
+      redisClient,
+    });
+
+    const keys = {
+      queueKey: 'queue-1',
+    };
+
+    const responses = await Promise.all([
+      limiter.check(keys),
+      limiter.check(keys),
+      limiter.check(keys),
+    ]);
+
+    const isAllowed = responses.map(response => response.isAllowed);
+    const remainingRequests = responses
+      .map(response => response.remainingRequests)
+      .sort();
+    const remainingTime = responses
+      .map(response => response.remainingTime)
+      .sort();
+
+    expect(isAllowed).toEqual([true, true, true]);
+    expect(remainingRequests).toEqual([0, 1, 2]);
+    expect(remainingTime).toEqual([0, 0, 0]);
+  });
+
+  it('rejects requests', async () => {
+    const limiter = new SlidingWindowLog({
+      capacity: 2,
+      windowMs: 1000,
+      redisClient,
+    });
+
+    const keys = {
+      queueKey: 'queue-1',
+    };
+
+    const responses = await Promise.all([
+      limiter.check(keys),
+      limiter.check(keys),
+      limiter.check(keys),
+    ]);
+
+    const isAllowed = responses.map(response => response.isAllowed).sort();
+    const remainingRequests = responses
+      .map(response => response.remainingRequests)
+      .sort();
+    const remainingTime = responses
+      .map(response => response.remainingTime)
+      .sort();
+
+    expect(isAllowed).toEqual([false, true, true]);
+    expect(remainingRequests).toEqual([0, 0, 1]);
+    expect(remainingTime).toEqual([0, 0, expect.any(Number)]);
+    expect(remainingTime[2]).toBeGreaterThan(0);
+  });
+
+  it('handles fraction options', async () => {
+    const limiter = new SlidingWindowLog({
+      capacity: 3,
+      windowMs: 1500,
+      redisClient,
+    });
+
+    const keys = {
+      queueKey: 'queue-1',
+    };
+
+    const responses = await Promise.all([
+      limiter.check(keys),
+      limiter.check(keys),
+      limiter.check(keys),
+      limiter.check(keys),
+    ]);
+    const isAllowed = responses.map(response => response.isAllowed).sort();
+    const remainingRequests = responses
+      .map(response => response.remainingRequests)
+      .sort();
+
+    expect(isAllowed).toEqual([false, true, true, true]);
+    expect(remainingRequests).toEqual([0, 0, 1, 2]);
+  });
+
+  // it('handles multiple keys correctly', async () => {
+  //   const limiter = new SlidingWindowLog({
+  //     capacity: 3,
+  //     windowMs: 1000,
+  //     redisClient,
+  //   });
+
+  //   const keys1 = {
+  //     queueKey: 'queue-1',
+  //   };
+
+  //   const keys2 = {
+  //     queueKey: 'queue-2',
+  //   };
+
+  //   const responses1 = await Promise.all([
+  //     limiter.check(keys1),
+  //     limiter.check(keys1),
+  //     limiter.check(keys1),
+  //     limiter.check(keys1),
+  //   ]);
+
+  //   const responses2 = await Promise.all([
+  //     limiter.check(keys2),
+  //     limiter.check(keys2),
+  //     limiter.check(keys2),
+  //     limiter.check(keys2),
+  //   ]);
+
+  //   const isAllowed1 = responses1.map(response => response.isAllowed).sort();
+  //   const isAllowed2 = responses2.map(response => response.isAllowed).sort();
+
+  //   expect(isAllowed1).toEqual([false, true, true, true]);
+  //   expect(isAllowed2).toEqual([false, true, true, true]);
+  // });
+
+  // it('token refilling works correctly', async () => {
+  //   const limiter = new SlidingWindowLog({
+  //     capacity: 3,
+  //     windowMs: 100,
+  //     redisClient,
+  //   });
+
+  //   const keys = {
+  //     queueKey: 'queue-1',
+  //   };
+
+  //   const responses1 = await Promise.all([
+  //     limiter.check(keys),
+  //     limiter.check(keys),
+  //     limiter.check(keys),
+  //   ]);
+
+  //   const isAllowed1 = responses1.map(response => response.isAllowed).sort();
+  //   const remainingRequests1 = responses1
+  //     .map(response => response.remainingRequests)
+  //     .sort();
+  //   const remainingTime1 = responses1
+  //     .map(response => response.remainingTime)
+  //     .sort();
+
+  //   expect(isAllowed1).toEqual([true, true, true]);
+  //   expect(remainingRequests1).toEqual([0, 1, 2]);
+  //   expect(remainingTime1).toEqual([0, 0, 0]);
+
+  //   await wait(50);
+
+  //   const response1 = await limiter.check(keys);
+  //   console.log({ response1 });
+  //   expect(response1.isAllowed).toBe(false);
+
+  //   await wait(50);
+
+  //   const response2 = await limiter.check(keys);
+  //   expect(response2.isAllowed).toBe(true);
+
+  //   await wait(300);
+
+  //   const responses2 = await Promise.all([
+  //     limiter.check(keys),
+  //     limiter.check(keys),
+  //     limiter.check(keys),
+  //     limiter.check(keys),
+  //   ]);
+
+  //   const isAllowed2 = responses2.map(response => response.isAllowed).sort();
+  //   const remainingRequests2 = responses2
+  //     .map(response => response.remainingRequests)
+  //     .sort();
+  //   const remainingTime2 = responses2
+  //     .map(response => response.remainingTime)
+  //     .sort();
+
+  //   expect(isAllowed2).toEqual([false, true, true, true]);
+  //   expect(remainingRequests2).toEqual([0, 0, 1, 2]);
+  //   expect(remainingTime2.slice(0, remainingTime2.length - 1)).toEqual([
+  //     0, 0, 0,
+  //   ]);
+  //   expect(remainingTime2.at(-1)).toBeGreaterThan(0);
+  // });
+
+  it('throws error on invalid params', async () => {
+    expect(
+      () =>
+        new SlidingWindowLog({
+          capacity: 0,
+          windowMs: 1000,
+          redisClient,
+        })
+    ).toThrow(RLimiterError);
+
+    expect(
+      () =>
+        new SlidingWindowLog({
+          capacity: 1,
+          windowMs: 0,
+          redisClient,
+        })
+    ).toThrow(RLimiterError);
+  });
+
+  it('onError works correctly', async () => {
+    const errorCb = vi.fn();
+
+    const limiter = new SlidingWindowLog({
+      redisClient,
+      capacity: 3,
+      windowMs: 1000,
+      onError: errorCb,
+    });
+
+    const keys = {
+      queueKey: 'queue-1',
+    };
+
+    await redisClient.close();
+    const { isAllowed, remainingRequests, remainingTime } =
+      await limiter.check(keys);
+
+    expect(errorCb).toHaveBeenCalledOnce();
+    expect(isAllowed).toBe(false);
+    expect(remainingRequests).toBe(0);
+    expect(remainingTime).toBe(0);
+  });
+});
