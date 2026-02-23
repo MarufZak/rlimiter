@@ -74,7 +74,7 @@ export class TokenBucket {
           local newTokens = refillTokens - requested
 
           if newTokens < 0 then
-            local remainingTime = math.ceil((requested - newTokens) / rate * 1000)
+            local remainingTime = math.ceil((requested - refillTokens) / rate * 1000)
 
             return { false, 0, remainingTime }
           end
