@@ -36,7 +36,7 @@ beforeAll(() => {
       onProceed: proceedCb,
       strategy: new FixedWindow({
         maxTokens: 3,
-        windowMs: 1000,
+        windowSizeMs: 1000,
         redisClient,
       }),
     })
