@@ -37,6 +37,12 @@ export class SlidingWindowCount {
       throw new RLimiterError('limit should be greater than 0');
     }
 
+    if (windowSizeMs < subWindowSizeMs) {
+      throw new RLimiterError(
+        'windowSizeMs should be greater than or equal to subWindowSizeMs'
+      );
+    }
+
     this.redisClient = redisClient;
     this.onError = onError;
     this.windowSizeMs = windowSizeMs;
@@ -53,6 +59,7 @@ export class SlidingWindowCount {
           local windowSizeMs = tonumber(ARGV[1])
           local subWindowSizeMs = tonumber(ARGV[2])
           local limit = tonumber(ARGV[3])
+          local requested = tonumber(ARGV[4])
 
           local time = redis.call("TIME")
           local now = tonumber(time[1]) * 1000 + math.floor(tonumber(time[2]) / 1000)
@@ -79,10 +86,10 @@ export class SlidingWindowCount {
           end
 
           local currentSubWindow = tostring(math.floor(now / subWindowSizeMs))
-          redis.call("HINCRBY", hashKey, currentSubWindow, 1)
+          redis.call("HINCRBY", hashKey, currentSubWindow, requested)
           redis.call("HPEXPIRE", hashKey, windowSizeMs, "NX", "FIELDS", "1", currentSubWindow)
 
-          local remainingRequests = limit - sum - 1
+          local remainingRequests = limit - sum - requested
 
           return { true, remainingRequests, 0 }
         `,
@@ -92,6 +99,9 @@ export class SlidingWindowCount {
             this.windowSizeMs.toString(),
             this.subWindowSizeMs.toString(),
             this.limit.toString(),
+            // when request is rejected, remainingTime doesn't account
+            // the possibily of following value to be more than 1
+            '1',
           ],
         }
       );

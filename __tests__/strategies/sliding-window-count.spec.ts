@@ -206,6 +206,16 @@ describe('Sliding window count', () => {
           redisClient,
         })
     ).toThrow(RLimiterError);
+
+    expect(
+      () =>
+        new SlidingWindowCount({
+          limit: 1,
+          windowSizeMs: 100,
+          subWindowSizeMs: 500,
+          redisClient,
+        })
+    ).toThrow(RLimiterError);
   });
 
   it('onError works correctly', async () => {
