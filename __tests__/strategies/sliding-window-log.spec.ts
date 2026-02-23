@@ -128,69 +128,69 @@ describe('Sliding window log', () => {
     expect(isAllowed2).toEqual([false, true, true, true]);
   });
 
-  // it('token refilling works correctly', async () => {
-  //   const limiter = new SlidingWindowLog({
-  //     capacity: 3,
-  //     windowMs: 100,
-  //     redisClient,
-  //   });
+  it('token refilling works correctly', async () => {
+    const limiter = new SlidingWindowLog({
+      capacity: 3,
+      windowMs: 100,
+      redisClient,
+    });
 
-  //   const keys = {
-  //     queueKey: 'queue-1',
-  //   };
+    const keys = {
+      queueKey: 'queue-1',
+    };
 
-  //   const responses1 = await Promise.all([
-  //     limiter.check(keys),
-  //     limiter.check(keys),
-  //     limiter.check(keys),
-  //   ]);
+    const responses1 = await Promise.all([
+      limiter.check(keys),
+      limiter.check(keys),
+      limiter.check(keys),
+    ]);
 
-  //   const isAllowed1 = responses1.map(response => response.isAllowed).sort();
-  //   const remainingRequests1 = responses1
-  //     .map(response => response.remainingRequests)
-  //     .sort();
-  //   const remainingTime1 = responses1
-  //     .map(response => response.remainingTime)
-  //     .sort();
+    const isAllowed1 = responses1.map(response => response.isAllowed).sort();
+    const remainingRequests1 = responses1
+      .map(response => response.remainingRequests)
+      .sort();
+    const remainingTime1 = responses1
+      .map(response => response.remainingTime)
+      .sort();
 
-  //   expect(isAllowed1).toEqual([true, true, true]);
-  //   expect(remainingRequests1).toEqual([0, 1, 2]);
-  //   expect(remainingTime1).toEqual([0, 0, 0]);
+    expect(isAllowed1).toEqual([true, true, true]);
+    expect(remainingRequests1).toEqual([0, 1, 2]);
+    expect(remainingTime1).toEqual([0, 0, 0]);
 
-  //   await wait(50);
+    await wait(50);
 
-  //   const response1 = await limiter.check(keys);
-  //   expect(response1.isAllowed).toBe(false);
+    const response1 = await limiter.check(keys);
+    expect(response1.isAllowed).toBe(false);
 
-  //   await wait(50);
+    await wait(50);
 
-  //   const response2 = await limiter.check(keys);
-  //   expect(response2.isAllowed).toBe(true);
+    const response2 = await limiter.check(keys);
+    expect(response2.isAllowed).toBe(true);
 
-  //   await wait(100);
+    await wait(100);
 
-  //   const responses2 = await Promise.all([
-  //     limiter.check(keys),
-  //     limiter.check(keys),
-  //     limiter.check(keys),
-  //     limiter.check(keys),
-  //   ]);
+    const responses2 = await Promise.all([
+      limiter.check(keys),
+      limiter.check(keys),
+      limiter.check(keys),
+      limiter.check(keys),
+    ]);
 
-  //   const isAllowed2 = responses2.map(response => response.isAllowed).sort();
-  //   const remainingRequests2 = responses2
-  //     .map(response => response.remainingRequests)
-  //     .sort();
-  //   const remainingTime2 = responses2
-  //     .map(response => response.remainingTime)
-  //     .sort();
+    const isAllowed2 = responses2.map(response => response.isAllowed).sort();
+    const remainingRequests2 = responses2
+      .map(response => response.remainingRequests)
+      .sort();
+    const remainingTime2 = responses2
+      .map(response => response.remainingTime)
+      .sort();
 
-  //   expect(isAllowed2).toEqual([false, true, true, true]);
-  //   expect(remainingRequests2).toEqual([0, 0, 1, 2]);
-  //   expect(remainingTime2.slice(0, remainingTime2.length - 1)).toEqual([
-  //     0, 0, 0,
-  //   ]);
-  //   expect(remainingTime2.at(-1)).toBeGreaterThan(0);
-  // });
+    expect(isAllowed2).toEqual([false, true, true, true]);
+    expect(remainingRequests2).toEqual([0, 0, 1, 2]);
+    expect(remainingTime2.slice(0, remainingTime2.length - 1)).toEqual([
+      0, 0, 0,
+    ]);
+    expect(remainingTime2.at(-1)).toBeGreaterThan(0);
+  });
 
   it('throws error on invalid params', async () => {
     expect(

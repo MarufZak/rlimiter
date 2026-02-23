@@ -43,12 +43,12 @@ export class SlidingWindowLog {
           local queueKey = KEYS[1]
 
           local capacity = tonumber(ARGV[1])
-          local windowS = tonumber(ARGV[2]) / 1000
+          local windowMs = tonumber(ARGV[2])
           local nonce = ARGV[3]
 
           local time = redis.call("TIME")
-          local windowEnd = tonumber(time[1] .. "." .. time[2])
-          local windowStart = windowEnd - windowS
+          local windowEnd = tonumber(time[1]) * 1000 + math.floor(tonumber(time[2]) / 1000)
+          local windowStart = windowEnd - windowMs
 
           redis.call("ZREMRANGEBYSCORE", queueKey, "-inf", windowStart)
           local members = redis.call("ZRANGE", queueKey, 0, -1)
