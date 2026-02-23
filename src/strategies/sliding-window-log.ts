@@ -3,7 +3,7 @@ import type { TStrategyCommonOpts, TStrategyResult } from '../types.js';
 
 export interface SlidingWindowLogOpts extends TStrategyCommonOpts {
   capacity: number;
-  windowMs: number;
+  windowSizeMs: number;
 }
 
 export interface SlidingWindowLogCheckOpts {
@@ -14,11 +14,11 @@ export class SlidingWindowLog {
   capacity: SlidingWindowLogOpts['capacity'];
   redisClient: SlidingWindowLogOpts['redisClient'];
   onError: SlidingWindowLogOpts['onError'];
-  windowMs: SlidingWindowLogOpts['windowMs'];
+  windowSizeMs: SlidingWindowLogOpts['windowSizeMs'];
 
   constructor({
     capacity,
-    windowMs,
+    windowSizeMs,
     redisClient,
     onError,
   }: SlidingWindowLogOpts) {
@@ -26,14 +26,14 @@ export class SlidingWindowLog {
       throw new RLimiterError('capacity should be greater than 0');
     }
 
-    if (windowMs <= 0) {
-      throw new RLimiterError('windowMs should be greater than 0');
+    if (windowSizeMs <= 0) {
+      throw new RLimiterError('windowSizeMs should be greater than 0');
     }
 
     this.capacity = capacity;
     this.redisClient = redisClient;
     this.onError = onError;
-    this.windowMs = windowMs;
+    this.windowSizeMs = windowSizeMs;
   }
 
   async check({ queueKey }: SlidingWindowLogCheckOpts): TStrategyResult {
@@ -43,12 +43,12 @@ export class SlidingWindowLog {
           local queueKey = KEYS[1]
 
           local capacity = tonumber(ARGV[1])
-          local windowMs = tonumber(ARGV[2])
+          local windowSizeMs = tonumber(ARGV[2])
           local nonce = ARGV[3]
 
           local time = redis.call("TIME")
           local windowEnd = tonumber(time[1]) * 1000 + math.floor(tonumber(time[2]) / 1000)
-          local windowStart = windowEnd - windowMs
+          local windowStart = windowEnd - windowSizeMs
 
           redis.call("ZREMRANGEBYSCORE", queueKey, "-inf", windowStart)
           local members = redis.call("ZRANGE", queueKey, 0, -1)
@@ -62,7 +62,7 @@ export class SlidingWindowLog {
 
           table.insert(members, nonce)
           redis.call("ZADD", queueKey, windowEnd, nonce)
-          redis.call("PEXPIRE", queueKey, windowMs)
+          redis.call("PEXPIRE", queueKey, windowSizeMs)
 
           local requestsRemaining = capacity - #members
 
@@ -72,7 +72,7 @@ export class SlidingWindowLog {
           keys: [queueKey],
           arguments: [
             this.capacity.toString(),
-            this.windowMs.toString(),
+            this.windowSizeMs.toString(),
             crypto.randomUUID(),
           ],
         }

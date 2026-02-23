@@ -6,7 +6,7 @@ await redisClient.connect();
 
 const strategy = new SlidingWindowLog({
   capacity: 10,
-  windowMs: 60_000, // 60 second window
+  windowSizeMs: 60_000, // 60 second window
   redisClient,
 });
 

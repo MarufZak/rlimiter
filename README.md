@@ -26,7 +26,7 @@ By default, requests are rejected when Redis fails. You can customize this behav
 ```typescript
 const strategy = new FixedWindow({
   maxTokens: 10,
-  windowSizeMs: 60000,
+  windowSizeMs: 60_000,
   redisClient,
   onError: error => {
     console.error('Rate limiter error:', error);
@@ -123,7 +123,7 @@ onError: () => 'reject'; // Default
 **Options:**
 
 - `capacity` - Maximum number of requests allowed per window
-- `windowMs` - Sliding window duration in milliseconds
+- `windowSizeMs` - Sliding window duration in milliseconds
 - `redisClient` - Redis client instance
 - `onError` - Optional error handler that returns `'allow'` or `'reject'` (default: rejects)
 

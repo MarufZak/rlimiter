@@ -71,7 +71,7 @@ app.use(
 // Sliding Window Log
 const slidingWindowLog = new SlidingWindowLog({
   capacity: 100,
-  windowMs: 60_000,
+  windowSizeMs: 60_000,
   redisClient,
 });
 

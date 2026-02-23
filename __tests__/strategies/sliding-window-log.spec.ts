@@ -8,7 +8,7 @@ describe('Sliding window log', () => {
   it('allows requests', async () => {
     const limiter = new SlidingWindowLog({
       capacity: 3,
-      windowMs: 1000,
+      windowSizeMs: 1000,
       redisClient,
     });
 
@@ -38,7 +38,7 @@ describe('Sliding window log', () => {
   it('rejects requests', async () => {
     const limiter = new SlidingWindowLog({
       capacity: 2,
-      windowMs: 1000,
+      windowSizeMs: 1000,
       redisClient,
     });
 
@@ -69,7 +69,7 @@ describe('Sliding window log', () => {
   it('handles fraction options', async () => {
     const limiter = new SlidingWindowLog({
       capacity: 3,
-      windowMs: 1500,
+      windowSizeMs: 1500,
       redisClient,
     });
 
@@ -95,7 +95,7 @@ describe('Sliding window log', () => {
   it('handles multiple keys correctly', async () => {
     const limiter = new SlidingWindowLog({
       capacity: 3,
-      windowMs: 1000,
+      windowSizeMs: 1000,
       redisClient,
     });
 
@@ -131,7 +131,7 @@ describe('Sliding window log', () => {
   it('token refilling works correctly', async () => {
     const limiter = new SlidingWindowLog({
       capacity: 3,
-      windowMs: 100,
+      windowSizeMs: 100,
       redisClient,
     });
 
@@ -197,7 +197,7 @@ describe('Sliding window log', () => {
       () =>
         new SlidingWindowLog({
           capacity: 0,
-          windowMs: 1000,
+          windowSizeMs: 1000,
           redisClient,
         })
     ).toThrow(RLimiterError);
@@ -206,7 +206,7 @@ describe('Sliding window log', () => {
       () =>
         new SlidingWindowLog({
           capacity: 1,
-          windowMs: 0,
+          windowSizeMs: 0,
           redisClient,
         })
     ).toThrow(RLimiterError);
@@ -218,7 +218,7 @@ describe('Sliding window log', () => {
     const limiter = new SlidingWindowLog({
       redisClient,
       capacity: 3,
-      windowMs: 1000,
+      windowSizeMs: 1000,
       onError: errorCb,
     });
 
