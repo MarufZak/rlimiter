@@ -108,6 +108,33 @@ if (!isAllowed) {
 }
 ```
 
+### Basic - Sliding Window Count
+
+> Requires Redis 7.4+ (uses `HEXPIRE` for per-field hash expiration)
+
+```typescript
+import { createClient } from 'redis';
+import { SlidingWindowCount } from '@marufzak/rlimiter';
+
+const redisClient = createClient();
+await redisClient.connect();
+
+const strategy = new SlidingWindowCount({
+  limit: 10,
+  windowSizeMs: 60000, // 60 second window
+  subWindowSizeMs: 10000, // 10 second sub-windows
+  redisClient,
+});
+
+const { isAllowed, remainingRequests, remainingTime } = await strategy.check({
+  hashKey: 'swc:user-123',
+});
+
+if (!isAllowed) {
+  console.log('Rate limit exceeded');
+}
+```
+
 ### Koa Middleware - Fixed Window
 
 ```typescript
@@ -214,6 +241,32 @@ app.use(
 );
 ```
 
+### Koa Middleware - Sliding Window Count
+
+```typescript
+import Koa from 'koa';
+import { koaRateLimiterMiddleware } from '@marufzak/rlimiter/adapters/koa';
+import { SlidingWindowCount } from '@marufzak/rlimiter';
+
+const app = new Koa();
+
+const strategy = new SlidingWindowCount({
+  limit: 100,
+  windowSizeMs: 60000,
+  subWindowSizeMs: 10000,
+  redisClient,
+});
+
+app.use(
+  koaRateLimiterMiddleware({
+    strategy,
+    getKey: ctx => ({
+      hashKey: `swc:${ctx.state.user?.id || ctx.ip}`,
+    }),
+  })
+);
+```
+
 ### Error Handling
 
 By default, requests are rejected when Redis fails. You can customize this behavior:
@@ -294,6 +347,25 @@ onError: () => 'reject'; // Default
   - `remainingRequests` - Number of available slots in queue
   - `remainingTime` - Time in milliseconds until queue has capacity
 
+### SlidingWindowCount(options)
+
+> Requires Redis 7.4+
+
+**Options:**
+
+- `limit` - Maximum number of requests allowed per window
+- `windowSizeMs` - Total window duration in milliseconds
+- `subWindowSizeMs` - Sub-window duration in milliseconds
+- `redisClient` - Redis client instance
+- `onError` - Optional error handler that returns `'allow'` or `'reject'` (default: rejects)
+
+**Methods:**
+
+- `check({ hashKey })` - Returns object:
+  - `isAllowed` - `true` if allowed, `false` if rate limited
+  - `remainingRequests` - Number of remaining requests in the current window
+  - `remainingTime` - Time in milliseconds until the next sub-window
+
 ### SlidingWindowLog(options)
 
 **Options:**
@@ -314,62 +386,12 @@ onError: () => 'reject'; // Default
 
 **Options:**
 
-- `strategy` - Rate limiting strategy instance (`FixedWindow`, `TokenBucket`, `LeakyBucket`, or `SlidingWindowLog`)
+- `strategy` - Rate limiting strategy instance (`FixedWindow`, `TokenBucket`, `LeakyBucket`, `SlidingWindowLog`, or `SlidingWindowCount`)
 - `getKey` - Function to extract rate limit key(s) from context (returns strategy-specific check options)
 - `onLimit` - Optional callback when rate limit exceeded
 - `onProceed` - Optional callback when request allowed
 
 Returns 429 status with `X-Ratelimit-Retry-After` header (seconds) and sets `X-Ratelimit-Remaining` header when rate limited.
-
-## Strategies
-
-### FixedWindow
-
-```typescript
-import { FixedWindow } from '@marufzak/rlimiter';
-
-const strategy = new FixedWindow({
-  maxTokens: 100,
-  refillMs: 60000,
-  redisClient,
-});
-```
-
-### TokenBucket
-
-```typescript
-import { TokenBucket } from '@marufzak/rlimiter';
-
-const strategy = new TokenBucket({
-  capacity: 100,
-  replenishRate: 10, // 10 tokens per second
-  redisClient,
-});
-```
-
-### LeakyBucket
-
-```typescript
-import { LeakyBucket } from '@marufzak/rlimiter';
-
-const strategy = new LeakyBucket({
-  capacity: 100,
-  leakRate: 10, // 10 requests per second
-  redisClient,
-});
-```
-
-### SlidingWindowLog
-
-```typescript
-import { SlidingWindowLog } from '@marufzak/rlimiter';
-
-const strategy = new SlidingWindowLog({
-  capacity: 100,
-  windowMs: 60000, // 60 second window
-  redisClient,
-});
-```
 
 ## License
 

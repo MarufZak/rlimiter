@@ -15,6 +15,10 @@ import type {
   SlidingWindowLog,
   SlidingWindowLogCheckOpts,
 } from './strategies/sliding-window-log.js';
+import type {
+  SlidingWindowCheckOpts,
+  SlidingWindowCount,
+} from './strategies/sliding-window-count.js';
 
 // eslint-disable-next-line
 export type TRedisClient = RedisClientType<any, any, any, any>;
@@ -34,9 +38,11 @@ export type TStrategy =
   | FixedWindow
   | TokenBucket
   | LeakyBucket
-  | SlidingWindowLog;
+  | SlidingWindowLog
+  | SlidingWindowCount;
 
 export type TStrategyCheckOpts = FixedWindowCheckOpts &
   TokenBucketCheckOpts &
   LeakyBucketCheckOpts &
-  SlidingWindowLogCheckOpts;
+  SlidingWindowLogCheckOpts &
+  SlidingWindowCheckOpts;
