@@ -9,7 +9,7 @@ describe('Fixed window', () => {
     const limiter = new FixedWindow({
       redisClient,
       maxTokens: 5,
-      refillMs: 1000,
+      windowSizeMs: 1000,
     });
 
     const key = `user-1`;
@@ -39,7 +39,7 @@ describe('Fixed window', () => {
     const limiter = new FixedWindow({
       redisClient,
       maxTokens: 1,
-      refillMs: 1000,
+      windowSizeMs: 1000,
     });
 
     const key = `user-1`;
@@ -61,7 +61,7 @@ describe('Fixed window', () => {
     const limiter = new FixedWindow({
       redisClient,
       maxTokens: 2.5,
-      refillMs: 100,
+      windowSizeMs: 100,
     });
 
     const responses1 = await Promise.all([
@@ -114,7 +114,7 @@ describe('Fixed window', () => {
     const limiter = new FixedWindow({
       redisClient,
       maxTokens: 1,
-      refillMs: 1000,
+      windowSizeMs: 1000,
     });
 
     const response1 = await limiter.check({ key: key1 });
@@ -137,7 +137,7 @@ describe('Fixed window', () => {
     const limiter = new FixedWindow({
       redisClient,
       maxTokens: 1,
-      refillMs: 1000,
+      windowSizeMs: 1000,
     });
 
     const key = `user-1`;
@@ -169,7 +169,7 @@ describe('Fixed window', () => {
     const limiter = new FixedWindow({
       redisClient,
       maxTokens: 3,
-      refillMs: 1000,
+      windowSizeMs: 1000,
     });
 
     const key = `user-1`;
@@ -221,7 +221,7 @@ describe('Fixed window', () => {
       () =>
         new FixedWindow({
           maxTokens: 0,
-          refillMs: 1,
+          windowSizeMs: 1,
           redisClient,
         })
     ).toThrow(RLimiterError);
@@ -230,7 +230,7 @@ describe('Fixed window', () => {
       () =>
         new FixedWindow({
           maxTokens: 1,
-          refillMs: 0,
+          windowSizeMs: 0,
           redisClient,
         })
     ).toThrow(RLimiterError);
@@ -242,7 +242,7 @@ describe('Fixed window', () => {
     const limiter = new FixedWindow({
       redisClient,
       maxTokens: 3,
-      refillMs: 1000,
+      windowSizeMs: 1000,
       onError: errorCb,
     });
 

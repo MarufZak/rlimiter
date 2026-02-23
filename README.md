@@ -21,7 +21,7 @@ await redisClient.connect();
 
 const strategy = new FixedWindow({
   maxTokens: 10,
-  refillMs: 60000,
+  windowSizeMs: 60000,
   redisClient,
 });
 
@@ -146,7 +146,7 @@ const app = new Koa();
 
 const strategy = new FixedWindow({
   maxTokens: 100,
-  refillMs: 60000,
+  windowSizeMs: 60000,
   redisClient,
 });
 
@@ -274,7 +274,7 @@ By default, requests are rejected when Redis fails. You can customize this behav
 ```typescript
 const strategy = new FixedWindow({
   maxTokens: 10,
-  refillMs: 60000,
+  windowSizeMs: 60000,
   redisClient,
   onError: error => {
     console.error('Rate limiter error:', error);
@@ -304,7 +304,7 @@ onError: () => 'reject'; // Default
 **Options:**
 
 - `maxTokens` - Maximum number of requests allowed per window
-- `refillMs` - Window duration in milliseconds
+- `windowSizeMs` - Window duration in milliseconds
 - `redisClient` - Redis client instance
 - `onError` - Optional error handler that returns `'allow'` or `'reject'` (default: rejects)
 
@@ -313,7 +313,7 @@ onError: () => 'reject'; // Default
 - `check({ key })` - Returns object:
   - `isAllowed` - `true` if allowed, `false` if rate limited
   - `remainingRequests` - Number of remaining requests in current window
-  - `remainingTime` - Time in milliseconds until window resets
+  - `remainingTime` - Time in milliseconds until retry is possible
 
 ### TokenBucket(options)
 
@@ -329,7 +329,7 @@ onError: () => 'reject'; // Default
 - `check({ bucketKey, timestampKey })` - Returns object:
   - `isAllowed` - `true` if allowed, `false` if rate limited
   - `remainingRequests` - Number of remaining tokens in bucket
-  - `remainingTime` - Time in milliseconds until bucket refills
+  - `remainingTime` - Time in milliseconds until retry is possible
 
 ### LeakyBucket(options)
 
@@ -345,7 +345,7 @@ onError: () => 'reject'; // Default
 - `check({ queueKey, timestampKey })` - Returns object:
   - `isAllowed` - `true` if allowed, `false` if rate limited
   - `remainingRequests` - Number of available slots in queue
-  - `remainingTime` - Time in milliseconds until queue has capacity
+  - `remainingTime` - Time in milliseconds until retry is possible
 
 ### SlidingWindowCount(options)
 
@@ -364,7 +364,7 @@ onError: () => 'reject'; // Default
 - `check({ hashKey })` - Returns object:
   - `isAllowed` - `true` if allowed, `false` if rate limited
   - `remainingRequests` - Number of remaining requests in the current window
-  - `remainingTime` - Time in milliseconds until the next sub-window
+  - `remainingTime` - Time in milliseconds until retry is possible
 
 ### SlidingWindowLog(options)
 
@@ -380,7 +380,7 @@ onError: () => 'reject'; // Default
 - `check({ queueKey })` - Returns object:
   - `isAllowed` - `true` if allowed, `false` if rate limited
   - `remainingRequests` - Number of remaining requests in the current window
-  - `remainingTime` - Time in milliseconds until the earliest entry expires
+  - `remainingTime` - Time in milliseconds until retry is possible
 
 ### koaRateLimiterMiddleware(options)
 

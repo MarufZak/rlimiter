@@ -64,7 +64,8 @@ export class LeakyBucket {
           queueSize = math.max(0, queueSize - leakRate * elapsed) + requested
 
           if queueSize > capacity then
-            local remainingTime = (requested / leakRate) * 1000
+            local excessTokens = queueSize - capacity
+            local remainingTime = (excessTokens / leakRate) * 1000
 
             return { false, 0, remainingTime }
           end
@@ -80,12 +81,7 @@ export class LeakyBucket {
         `,
         {
           keys: [queueKey, timestampKey],
-          arguments: [
-            this.capacity.toString(),
-            this.leakRate.toString(),
-            // algorithm doesn't account following value to be more than 1
-            '1',
-          ],
+          arguments: [this.capacity.toString(), this.leakRate.toString(), '1'],
         }
       );
 

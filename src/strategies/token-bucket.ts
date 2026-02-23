@@ -48,12 +48,12 @@ export class TokenBucket {
           local timestampKey = KEYS[2]
 
           local capacity = tonumber(ARGV[1])
-          local rate = tonumber(ARGV[2])
+          local replenishRate = tonumber(ARGV[2])
           local requested = tonumber(ARGV[3])
 
           local now = tonumber(redis.call("TIME")[1])
 
-          local fillTime = capacity / rate
+          local fillTime = capacity / replenishRate
           local ttl = math.floor(fillTime * 2)
 
           local currentTokens = tonumber(redis.call("GET", bucketKey))
@@ -68,13 +68,13 @@ export class TokenBucket {
           end
 
           local delta = now - lastAccessTime
-          local refillTokens = currentTokens + (rate * delta)
+          local refillTokens = currentTokens + (replenishRate * delta)
           refillTokens = math.min(capacity, refillTokens)
 
           local newTokens = refillTokens - requested
 
           if newTokens < 0 then
-            local remainingTime = math.ceil((requested - refillTokens) / rate * 1000)
+            local remainingTime = math.ceil((requested - refillTokens) / replenishRate * 1000)
 
             return { false, 0, remainingTime }
           end

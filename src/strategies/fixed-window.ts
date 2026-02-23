@@ -3,7 +3,7 @@ import type { TStrategyCommonOpts, TStrategyResult } from '../types.js';
 
 export interface FixedWindowOpts extends TStrategyCommonOpts {
   maxTokens: number;
-  refillMs: number;
+  windowSizeMs: number;
 }
 
 export interface FixedWindowCheckOpts {
@@ -14,21 +14,26 @@ export class FixedWindow {
   private redisClient: FixedWindowOpts['redisClient'];
   private onError: FixedWindowOpts['onError'];
   private maxTokens: FixedWindowOpts['maxTokens'];
-  private refillMs: FixedWindowOpts['refillMs'];
+  private windowSizeMs: FixedWindowOpts['windowSizeMs'];
 
-  constructor({ maxTokens, refillMs, redisClient, onError }: FixedWindowOpts) {
+  constructor({
+    maxTokens,
+    windowSizeMs,
+    redisClient,
+    onError,
+  }: FixedWindowOpts) {
     if (maxTokens <= 0) {
       throw new RLimiterError('maxTokens should be greater than 0');
     }
 
-    if (refillMs <= 0) {
-      throw new RLimiterError('refillMs should be greater than 0');
+    if (windowSizeMs <= 0) {
+      throw new RLimiterError('windowSizeMs should be greater than 0');
     }
 
     this.redisClient = redisClient;
     this.onError = onError;
     this.maxTokens = maxTokens;
-    this.refillMs = refillMs;
+    this.windowSizeMs = windowSizeMs;
   }
 
   async check({ key }: FixedWindowCheckOpts): TStrategyResult {
@@ -38,14 +43,14 @@ export class FixedWindow {
           local countKey = KEYS[1]
 
           local maxTokens = tonumber(ARGV[1])
-          local refillMs = tonumber(ARGV[2])
+          local windowSizeMs = tonumber(ARGV[2])
 
           local count = tonumber(redis.call("GET", countKey))
           local ttl = tonumber(redis.call("PTTL", countKey))
 
           if not count or ttl < 0 then
             local tokensLeft = maxTokens - 1
-            redis.call("PSETEX", countKey, refillMs, tokensLeft)
+            redis.call("PSETEX", countKey, windowSizeMs, tokensLeft)
 
             return { true, tokensLeft, 0 }
           end
@@ -62,7 +67,7 @@ export class FixedWindow {
         `,
         {
           keys: [key],
-          arguments: [this.maxTokens.toString(), this.refillMs.toString()],
+          arguments: [this.maxTokens.toString(), this.windowSizeMs.toString()],
         }
       );
 
