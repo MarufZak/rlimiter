@@ -72,7 +72,7 @@ export class SlidingWindowLog {
           arguments: [
             this.capacity.toString(),
             this.windowMs.toString(),
-            Math.random().toString().slice(2),
+            crypto.randomUUID(),
           ],
         }
       );
