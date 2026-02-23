@@ -70,7 +70,7 @@ export class SlidingWindowCount {
 
           local currentSubWindow = tostring(math.floor(now / subWindowSizeMs))
           redis.call("HINCRBY", hashKey, currentSubWindow, 1)
-          redis.call("HEXPIRE", hashKey, math.ceil(windowSizeMs / 1000), "NX", "FIELDS", "1", currentSubWindow)
+          redis.call("HPEXPIRE", hashKey, windowSizeMs, "NX", "FIELDS", "1", currentSubWindow)
 
           local remainingRequests = limit - sum - 1
 
