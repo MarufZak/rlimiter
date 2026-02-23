@@ -62,6 +62,7 @@ export class SlidingWindowLog {
 
           table.insert(members, nonce)
           redis.call("ZADD", queueKey, windowEnd, nonce)
+          redis.call("PEXPIRE", queueKey, windowMs)
 
           local requestsRemaining = capacity - #members
 
