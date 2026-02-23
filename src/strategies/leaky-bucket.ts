@@ -64,14 +64,15 @@ export class LeakyBucket {
           queueSize = math.max(0, queueSize - leakRate * elapsed) + requested
 
           if queueSize > capacity then
-            local excessTokens = queueSize - capacity
             local remainingTime = (requested / leakRate) * 1000
 
             return { false, 0, remainingTime }
           end
 
-          redis.call("SET", queueKey, queueSize)
-          redis.call("SET", timestampKey, now)
+          local ttl = math.ceil(capacity / leakRate)
+
+          redis.call("SETEX", queueKey, ttl, queueSize)
+          redis.call("SETEX", timestampKey, ttl, now)
 
           local remainingRequests = math.max(0, capacity - queueSize)
 
@@ -79,7 +80,12 @@ export class LeakyBucket {
         `,
         {
           keys: [queueKey, timestampKey],
-          arguments: [this.capacity.toString(), this.leakRate.toString(), '1'],
+          arguments: [
+            this.capacity.toString(),
+            this.leakRate.toString(),
+            // algorithm doesn't account following value to be more than 1
+            '1',
+          ],
         }
       );
 

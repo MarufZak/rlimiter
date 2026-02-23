@@ -99,8 +99,7 @@ export class SlidingWindowCount {
             this.windowSizeMs.toString(),
             this.subWindowSizeMs.toString(),
             this.limit.toString(),
-            // when request is rejected, remainingTime doesn't account
-            // the possibily of following value to be more than 1
+            // algorithm doesn't account following value to be more than 1
             '1',
           ],
         }
