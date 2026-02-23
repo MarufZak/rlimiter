@@ -110,7 +110,7 @@ if (!isAllowed) {
 
 ### Basic - Sliding Window Count
 
-> Requires Redis 7.4+ (uses `HEXPIRE` for per-field hash expiration)
+> Requires Redis 7.4+ (uses `HPEXPIRE` for per-field hash expiration)
 
 ```typescript
 import { createClient } from 'redis';
