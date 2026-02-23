@@ -119,25 +119,39 @@ describe('Sliding window count', () => {
 
     const response1 = await limiter.check(keys);
     expect(response1.isAllowed).toBe(true);
+    expect(response1.remainingRequests).toBe(2);
+    expect(response1.remainingTime).toBe(0);
 
     await wait(50);
 
     const response2 = await limiter.check(keys);
     expect(response2.isAllowed).toBe(true);
+    expect(response2.remainingRequests).toBe(1);
+    expect(response2.remainingTime).toBe(0);
 
     await wait(50);
 
     const response3 = await limiter.check(keys);
-    const response4 = await limiter.check(keys);
     expect(response3.isAllowed).toBe(true);
+    expect(response3.remainingRequests).toBe(0);
+    expect(response3.remainingTime).toBe(0);
+
+    const response4 = await limiter.check(keys);
     expect(response4.isAllowed).toBe(false);
+    expect(response4.remainingRequests).toBe(0);
+    expect(response4.remainingTime).toBeGreaterThan(0);
 
     await wait(50);
 
     const response5 = await limiter.check(keys);
-    const response6 = await limiter.check(keys);
     expect(response5.isAllowed).toBe(true);
+    expect(response5.remainingRequests).toBe(0);
+    expect(response5.remainingTime).toBe(0);
+
+    const response6 = await limiter.check(keys);
     expect(response6.isAllowed).toBe(false);
+    expect(response6.remainingRequests).toBe(0);
+    expect(response6.remainingTime).toBeGreaterThan(0);
 
     await wait(150);
 
@@ -149,7 +163,17 @@ describe('Sliding window count', () => {
     ]);
 
     const isAllowed7 = responses7.map(response => response.isAllowed).sort();
+    const remainingRequests7 = responses7
+      .map(response => response.remainingRequests)
+      .sort();
+    const remainingTime7 = responses7
+      .map(response => response.remainingTime)
+      .sort();
+
     expect(isAllowed7).toEqual([false, true, true, true]);
+    expect(remainingRequests7).toEqual([0, 0, 1, 2]);
+    expect(remainingTime7).toEqual([0, 0, 0, expect.any(Number)]);
+    expect(remainingTime7.at(-1)).toBeGreaterThan(0);
   });
 
   it('throws error on invalid params', async () => {

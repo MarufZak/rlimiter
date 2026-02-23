@@ -55,7 +55,7 @@ export class SlidingWindowLog {
 
           if #members >= capacity then
             local firstScore = tonumber(redis.call("ZSCORE", queueKey, members[1]))
-            local remainingTime = (firstScore - windowStart) * 1000
+            local remainingTime = firstScore - windowStart
 
             return { false, 0, remainingTime }
           end

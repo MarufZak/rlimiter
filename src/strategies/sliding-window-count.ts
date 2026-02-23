@@ -57,15 +57,25 @@ export class SlidingWindowCount {
           local time = redis.call("TIME")
           local now = tonumber(time[1]) * 1000 + math.floor(tonumber(time[2]) / 1000)
 
-          local values = redis.call("HVALS", hashKey)
+          local entries = redis.call("HGETALL", hashKey)
           local sum = 0
 
-          for i = 1, #values, 1 do
-              sum = sum + values[i]
+          for i = 2, #entries, 2 do
+              sum = sum + tonumber(entries[i])
           end
 
           if sum >= limit then
-            return { false, 0, subWindowSizeMs }
+            local oldestField = tonumber(entries[1])
+
+            for i = 3, #entries, 2 do
+              local entry = tonumber(entries[i])
+              if oldestField > entry then
+                oldestField = entry
+              end
+            end
+
+            local remainingTime = redis.call("HPTTL", hashKey, "FIELDS", 1, tostring(oldestField))[1]
+            return { false, 0, remainingTime }
           end
 
           local currentSubWindow = tostring(math.floor(now / subWindowSizeMs))
